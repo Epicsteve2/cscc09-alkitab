@@ -1,0 +1,9 @@
+# OS Files
+.DS_Store
+
+# dependencies
+node_modules/
+
+# misc
+.env
+.idea
