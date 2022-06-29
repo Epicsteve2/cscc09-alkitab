@@ -3,6 +3,8 @@ import express from 'express';
 import logging from './middlewares/logging';
 import bodyParser from 'body-parser';
 import sampleRouter from './routes/car';
+import mongoose from "mongoose";
+import config from "./config/general.config";
 
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
@@ -31,6 +33,13 @@ app.use((req, res, next) => {
 	const error = new Error('not found');
 	return res.status(404).json({ message: error.message });
 });
+
+// Connect to MongoDB
+mongoose
+	.connect(config.mongo.url, config.mongo.options)
+	.then(r => logging.info(NAMESPACE, "Connected to MongoDB Database!"))
+	.catch(error => logging.error(NAMESPACE, error.message, error));
+
 
 // Creating the server
 app.listen(generalConfig.server.port, () => {
