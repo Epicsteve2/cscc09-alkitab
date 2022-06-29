@@ -11,8 +11,9 @@ const MONGO_OPTIONS = {
   retryWrites: false
 };
 
-const MONGO_USERNAME = process.env.MONGO_USERNAME || "superuser";
-const MONGO_PASSWORD = process.env.MONGO_PASSWORD || "superuser";
+const MONGO_PORT = parseInt(process.env.MONGO_PORT || "27017");
+const MONGO_HOST = process.env.MONGO_HOST || "localhost";
+
 
 
 const dbConfig = {};
