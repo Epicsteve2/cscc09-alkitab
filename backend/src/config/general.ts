@@ -1,5 +1,5 @@
-import SERVER from "./server.config";
-import MONGO from "./mongo.config";
+import SERVER from './server.config';
+import MONGO from './mongo.config';
 
 const config = {
 	server: SERVER,

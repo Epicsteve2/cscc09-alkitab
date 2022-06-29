@@ -1,10 +1,9 @@
-import generalConfig from './config/general.config';
 import express from 'express';
 import logging from './middlewares/logging';
 import bodyParser from 'body-parser';
-import sampleRouter from './routes/car';
-import mongoose from "mongoose";
-import config from "./config/general.config";
+import mongoose from 'mongoose';
+import config from './config/general';
+import userRouter from "./routes/user";
 
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
@@ -25,8 +24,8 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// Routes
-app.use('/car', sampleRouter);
+// API Routes
+app.use('/api/users', userRouter);
 
 // Error Handling
 app.use((req, res, next) => {
@@ -37,11 +36,10 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 mongoose
 	.connect(config.mongo.url, config.mongo.options)
-	.then(r => logging.info(NAMESPACE, "Connected to MongoDB Database!"))
-	.catch(error => logging.error(NAMESPACE, error.message, error));
-
+	.then((r) => logging.info(NAMESPACE, 'Connected to MongoDB Database!'))
+	.catch((error) => logging.error(NAMESPACE, error.message, error));
 
 // Creating the server
-app.listen(generalConfig.server.port, () => {
-	logging.info(NAMESPACE, `Server running on ${generalConfig.server.hostname}:${generalConfig.server.port}`);
+app.listen(config.server.port, () => {
+	logging.info(NAMESPACE, `Server running on ${config.server.hostname}:${config.server.port}`);
 });
