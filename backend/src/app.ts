@@ -3,7 +3,7 @@ import logging from './middlewares/logging';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import config from './config/general';
-import userRouter from "./routes/user";
+import userRouter from './routes/user';
 
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
