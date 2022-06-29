@@ -1,28 +1,41 @@
-# General
+# Website
 
-## Backend Setup
-1. Install Node and NPM
-2. ``cd`` into the backend directory and install all dependencies
-```
-$ cd backend/
-$ npm install
-```
+This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
-3. Create a `.env` file in the `backend/` directory and add the following to it:
+### Installation
+
 ```
-HOST_NAME=localhost
-PORT=8080
+$ yarn
 ```
 
-4. To run the development server:
+### Local Development
+
 ```
-$ npm run dev
+$ yarn start
 ```
 
-## Contributing
-* Use Git Flow:
-  * Main branch for releases (Beta + Final Versions)
-  * Development branch
-    * Create branches off development for each new feature
-      * Naming structure: `feature/feature-name`
-    * Merge feature branch to development
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+### Build
+
+```
+$ yarn build
+```
+
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
+
+### Deployment
+
+Using SSH:
+
+```
+$ USE_SSH=true yarn deploy
+```
+
+Not using SSH:
+
+```
+$ GIT_USER=<Your GitHub username> yarn deploy
+```
+
+If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
