@@ -1,16 +1,8 @@
 # Alkitab
+Powered by Svelte, TypeScript, SCSS, Vite, Bootstrap 🚀
 
-## Setup!
-### IDE
-Install the Svelte extension, then enable the typescript plugin (there should be a popup)
-### Running locally
-```bash
-npm install
-npm run dev
-```
-
-Then go to [http://localhost:3000/](http://localhost:3000/)
-
+## Setup
+[See this](../docs/Setup/frontend.md)
 ## Docs
 - [Svelte docs](https://svelte.dev/docs)
 - [Bootstrap docs](https://getbootstrap.com/docs/5.0/getting-started/introduction/)
