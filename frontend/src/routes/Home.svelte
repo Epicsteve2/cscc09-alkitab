@@ -1,23 +1,47 @@
 <script lang="ts">
-  import Home from "./routes/Home.svelte";
-  import TestPage from "./routes/TestPage.svelte";
+  import logo from "../assets/svelte.png";
+  import Counter from "../lib/Counter.svelte";
 
-  // svelte-routing
-  import { Router, Link, Route } from "svelte-routing";
-  export let url = "";
+  // Bootstrap testing
+  import { Button, Modal } from "sveltestrap";
+  let isOpen = false;
+  const toggle = () => (isOpen = !isOpen);
 </script>
 
 <main>
-  <Router {url}>
-    <nav>
-      <Link to="/">Home</Link>
-      <Link to="test">Test</Link>
-    </nav>
-    <div>
-      <Route path="test" component={TestPage} />
-      <Route path="/" component={Home} />
-    </div>
-  </Router>
+  <img src={logo} alt="Svelte Logo" />
+  <h1>Hello Typescript!</h1>
+
+  <Counter />
+
+  <p>
+    Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
+    apps.
+  </p>
+
+  <p>
+    Check out <a href="https://github.com/sveltejs/kit#readme">SvelteKit</a> for
+    the officially supported framework, also powered by Vite!
+  </p>
+
+  <!-- Bootstrap testing -->
+  <div>
+    <p>Testing bootstrap button</p>
+    <button type="button" class="btn btn-primary">Primary</button>
+  </div>
+  <br />
+
+  <Button color="primary" on:click={toggle}
+    >This opens up a modal (Idk what that is lol)</Button
+  >
+  <Modal body {isOpen} {toggle} header="Hello World!">
+    <p>There's a song that we're singing. Come on</p>
+    <img
+      src="https://i.ytimg.com/vi/NUJIRujygvY/hqdefault.jpg"
+      alt="Come on Get Happy"
+      class="img-fluid"
+    />
+  </Modal>
 </main>
 
 <style lang="scss">
