@@ -17,3 +17,5 @@ Then go to [http://localhost:3000/](http://localhost:3000/)
 - [sveltestrap docs](https://sveltestrap.js.org)
   - I installed both `Bootstrap` and `sveltestrap`. `sveltestrap` looks like a component library, so idk if it needs `Bootstrap` lol
 - [SCSS/SASS (idk the difference lol) docs](https://sass-lang.com/documentation/)
+- [svelte-routing docs](https://github.com/EmilTholin/svelte-routing)
+- [TypeScript docs](https://www.typescriptlang.org/docs/)

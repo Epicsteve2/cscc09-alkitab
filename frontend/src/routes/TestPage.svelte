@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Col, Container, Row, Button } from "sveltestrap";
+  import { Link } from "svelte-routing";
 </script>
 
 <main>
@@ -61,16 +62,35 @@
       <Col>idk lol</Col>
     </Row>
     <Button color="primary">Buttons!</Button>
+    <p>Testing SCSS</p>
+    <div class="card" style="width: 18rem;">
+      <img
+        src="https://avatars.githubusercontent.com/u/65625612?s=200&v=4"
+        class="card-img-top"
+        alt="test"
+      />
+      <div class="card-body">
+        <h5 class="card-title">Card title</h5>
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+        <!-- Using non-sveltestrap components -->
+        <Link to="/" class="btn btn-secondary">Go home</Link>
+      </div>
+    </div>
   </Container>
-  <p>Testing SCSS</p>
 </main>
 
-<!-- Syntax highlight doesn't work D:
+<!-- Syntax highlighting doesn't work D:
 Source: https://stackoverflow.com/a/62043156 -->
 <style lang="sass">
   /* This is how you style a component */
   :global(.testRow)
     color: red
+
+  :global(.row, .col)
+    border-style: solid
 
   p
     border-style: solid

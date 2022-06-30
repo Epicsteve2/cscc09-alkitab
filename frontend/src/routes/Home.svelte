@@ -4,8 +4,8 @@
 
   // Bootstrap testing
   import { Button, Modal } from "sveltestrap";
-  let isOpen = false;
-  const toggle = () => (isOpen = !isOpen);
+  let isOpen: boolean = false;
+  const toggle: () => void = () => (isOpen = !isOpen);
 </script>
 
 <main>
@@ -88,8 +88,6 @@
   }
 
   // Testing SCSS
-  // This works.
-  // Note: SASS has indented syntax
   @mixin button-base() {
     @include typography(button);
     @include ripple-surface;
