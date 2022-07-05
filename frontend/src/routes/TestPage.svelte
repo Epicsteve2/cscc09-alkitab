@@ -85,33 +85,5 @@
 <!-- Syntax highlighting doesn't work D:
 Source: https://stackoverflow.com/a/62043156 -->
 <style lang="sass">
-  /* This is how you style a component */
-  :global(.testRow)
-    color: red
 
-  :global(.row, .col)
-    border-style: solid
-
-  p
-    border-style: solid
-    margin: 1em
-
-  @mixin button-base()
-    @include typography(button)
-    @include ripple-surface
-    @include ripple-radius-bounded
-
-    display: inline-flex
-    position: relative
-    height: $button-height
-    border: none
-    vertical-align: middle
-
-    &:hover
-      cursor: pointer
-
-    &:disabled
-      color: $mdc-button-disabled-ink-color
-      cursor: default
-      pointer-events: none
 </style>
