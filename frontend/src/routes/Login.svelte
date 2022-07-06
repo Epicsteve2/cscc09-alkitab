@@ -27,8 +27,8 @@
 
     <!-- Submit button -->
     <div class="d-grid pb-4 gap-3">
-      <button class="btn btn-primary " type="button">Sign In</button>
-      <!-- <button class="btn btn-primary " type="button">Register</button> -->
+      <button class="btn btn-warning " type="button">Sign In</button>
+      <!-- <button class="btn btn-warning " type="button">Register</button> -->
     </div>
 
     <!-- Register buttons -->

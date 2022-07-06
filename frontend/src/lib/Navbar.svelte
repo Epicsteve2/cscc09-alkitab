@@ -24,7 +24,7 @@
     <Collapse {isOpen} navbar expand="md" on:update={handleUpdate}>
       <Nav navbar class="me-auto">
         <NavItem class="px-2">
-          <Link to="/" class="nav-link active">Bookshelf</Link>
+          <Link to="/" class="nav-link">Bookshelf</Link>
         </NavItem>
         <NavItem class="px-2">
           <Link to="/add-books" class="nav-link">Add books</Link>

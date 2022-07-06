@@ -3,6 +3,7 @@
   import TestPage from "./routes/TestPage.svelte";
   import Credits from "./routes/Credits.svelte";
   import Login from "./routes/Login.svelte";
+  import AddBooks from "./routes/AddBooks.svelte";
 
   import AlkitabNavbar from "./lib/Navbar.svelte";
   import Footer from "./lib/Footer.svelte";
@@ -38,6 +39,7 @@
         <Route path="/" component={Home} />
         <Route path="/credits" component={Credits} />
         <Route path="/login-signup" component={Login} />
+        <Route path="/add-books" component={AddBooks} />
       </div>
       <Footer />
     </div>
