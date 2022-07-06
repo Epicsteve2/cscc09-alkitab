@@ -6,7 +6,7 @@
 <footer class="mt-auto">
   <Navbar color="warning">
     <Nav class="mx-auto">
-      <Link to="credits" class="px-3 nav-link text-danger">Credits</Link>
+      <Link to="credits" class="px-3 nav-link">Credits</Link>
       <a
         class="px-3 nav-link"
         href="https://github.com/UTSCC09/project-we-use-linux-btw">GitHub</a
