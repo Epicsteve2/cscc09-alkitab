@@ -31,22 +31,20 @@
   export let url = "";
 </script>
 
-<main>
-  <Router {url}>
-    <div class="fluid-container d-flex flex-column min-vh-100">
-      <AlkitabNavbar />
-      <div>
-        <Route path="test" component={TestPage} />
-        <Route path="/" component={Home} />
-        <Route path="/credits" component={Credits} />
-        <Route path="/login-signup" component={Login} />
-        <Route path="/add-books" component={AddBooks} />
-        <Route component={NotFound} />
-      </div>
-      <Footer />
-    </div>
-  </Router>
-</main>
+<Router {url}>
+  <div class="fluid-container d-flex flex-column min-vh-100">
+    <AlkitabNavbar />
+
+    <Route path="test" component={TestPage} />
+    <Route path="/" component={Home} />
+    <Route path="/credits" component={Credits} />
+    <Route path="/login-signup" component={Login} />
+    <Route path="/add-books" component={AddBooks} />
+    <Route component={NotFound} />
+
+    <Footer />
+  </div>
+</Router>
 
 <style lang="scss">
 </style>
