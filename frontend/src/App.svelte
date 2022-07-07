@@ -9,25 +9,7 @@
   import AlkitabNavbar from "./lib/Navbar.svelte";
   import Footer from "./lib/Footer.svelte";
 
-  import {
-    Collapse,
-    Navbar,
-    NavbarToggler,
-    NavbarBrand,
-    Nav,
-    NavItem,
-    NavLink,
-    Dropdown,
-    DropdownToggle,
-    DropdownMenu,
-    DropdownItem,
-    Container,
-    Row,
-    Col,
-  } from "sveltestrap/src";
-
-  // svelte-routing
-  import { Router, Link, Route } from "svelte-routing";
+  import { Router, Route } from "svelte-routing";
   export let url = "";
 </script>
 

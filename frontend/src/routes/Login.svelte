@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    Col,
-    Container,
-    Row,
-    Button,
-    ListGroup,
-    ListGroupItem,
-  } from "sveltestrap";
+  import { Container } from "sveltestrap";
 </script>
 
 <Container class="py-3 ">

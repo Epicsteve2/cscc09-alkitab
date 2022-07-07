@@ -43,25 +43,17 @@ frontend/build: | exists/cmd/docker
 	@echo "$(GREEN)Building alkitab-frontend...$(RESETCOLOR)"
 	docker build ./frontend --tag alkitab-frontend
 
-.PHONY: frontend/run
-## Runs frontend docker image
-frontend/run: | exists/cmd/docker frontend/build
-	@echo "$(GREEN)Running alkitab-frontend in docker...$(RESETCOLOR)"
-	docker run --name alkitab-nginx --rm --publish 8080:80 alkitab-frontend
-
 .PHONY: nginx/run
-## Runs frontend docker image with nginx configs
+## Runs nginx docker image with frontend static files
 nginx/run: | exists/cmd/docker frontend/build
 	@echo "$(GREEN)Running alkitab-frontend in NGINX in docker...$(RESETCOLOR)"
-	docker run --name alkitab-nginx --rm --publish 8080:80 --volume $$(pwd)/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
+	docker run --name alkitab-nginx --publish 8080:80 --volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
 
 .PHONY: nginx/sh
-## Runs frontend docker image with nginx configs
+## sh into running nginx container
 nginx/sh: | exists/cmd/docker
 	@echo "$(GREEN)Notable commands to run:$(RESETCOLOR)"
-	@#echo "$(CYAN)less +F /etc/nginx/nginx.conf$(RESETCOLOR)"
 	@echo "$(CYAN)watch tail -n +1 /etc/nginx/nginx.conf$(RESETCOLOR)"
-	@#echo "$(CYAN)tail -f -n +1 /etc/nginx/nginx.conf$(RESETCOLOR)"
 	@echo "$(CYAN)nginx -s reload$(RESETCOLOR)"
 	@echo "$(CYAN)cd /usr/share/nginx/html$(RESETCOLOR)"
 	@echo
