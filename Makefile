@@ -47,4 +47,23 @@ frontend/build: | exists/cmd/docker
 ## Runs frontend docker image
 frontend/run: | exists/cmd/docker frontend/build
 	@echo "$(GREEN)Running alkitab-frontend in docker...$(RESETCOLOR)"
-	docker run --rm --publish 8080:80 alkitab-frontend
+	docker run --name alkitab-nginx --rm --publish 8080:80 alkitab-frontend
+
+.PHONY: nginx/run
+## Runs frontend docker image with nginx configs
+nginx/run: | exists/cmd/docker frontend/build
+	@echo "$(GREEN)Running alkitab-frontend in NGINX in docker...$(RESETCOLOR)"
+	docker run --name alkitab-nginx --rm --publish 8080:80 --volume $$(pwd)/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
+
+.PHONY: nginx/sh
+## Runs frontend docker image with nginx configs
+nginx/sh: | exists/cmd/docker
+	@echo "$(GREEN)Notable commands to run:$(RESETCOLOR)"
+	@#echo "$(CYAN)less +F /etc/nginx/nginx.conf$(RESETCOLOR)"
+	@echo "$(CYAN)watch tail -n +1 /etc/nginx/nginx.conf$(RESETCOLOR)"
+	@#echo "$(CYAN)tail -f -n +1 /etc/nginx/nginx.conf$(RESETCOLOR)"
+	@echo "$(CYAN)nginx -s reload$(RESETCOLOR)"
+	@echo "$(CYAN)cd /usr/share/nginx/html$(RESETCOLOR)"
+	@echo
+	@echo "$(GREEN)Running sh in NGINX container...$(RESETCOLOR)"
+	docker exec --interactive --tty alkitab-nginx sh
