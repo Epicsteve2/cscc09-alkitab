@@ -16,9 +16,10 @@ public/build
 Dockerfile
 .dockerignore
 README.md
+.gitignore
 
 # Editor directories and files
-.vscode/*
+.vscode
 .idea
 .DS_Store
 *.suo

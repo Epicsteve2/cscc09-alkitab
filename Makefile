@@ -41,13 +41,21 @@ exists/env/%:
 ## Builds frontend docker image
 frontend/build: | exists/cmd/docker
 	@echo "$(GREEN)Building alkitab-frontend...$(RESETCOLOR)"
-	docker build ./frontend --tag alkitab-frontend
+	docker build --tag alkitab-frontend ./frontend
+
+	@# For production, we want to directly add nginx.conf to the docker image instead of mounting it as a volume
+	@#echo "$(GREEN)Building alkitab-frontend with the NGINX config file...$(RESETCOLOR)"
+	@#docker build --tag alkitab-frontend ./frontend --build-arg NGINX_CONFIG="$$(<nginx/nginx.conf)"
 
 .PHONY: nginx/run
 ## Runs nginx docker image with frontend static files
 nginx/run: | exists/cmd/docker frontend/build
-	@echo "$(GREEN)Running alkitab-frontend in NGINX in docker...$(RESETCOLOR)"
-	docker run --rm --name alkitab-nginx --publish 8080:80 --volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
+	@echo "$(GREEN)Running alkitab-frontend with mounted NGINX config file in docker...$(RESETCOLOR)"
+	docker run --publish 8080:80 --volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
+
+	@# For production, we want to directly add nginx.conf to the docker image instead of mounting it as a volume
+	@#echo "$(GREEN)Running alkitab-frontend in NGINX in docker...$(RESETCOLOR)"
+	@#docker run --publish 8080:80 alkitab-frontend
 
 .PHONY: nginx/sh
 ## sh into running nginx container
@@ -58,4 +66,4 @@ nginx/sh: | exists/cmd/docker
 	@echo "$(CYAN)cd /usr/share/nginx/html$(RESETCOLOR)"
 	@echo
 	@echo "$(GREEN)Running sh in NGINX container...$(RESETCOLOR)"
-	docker exec --interactive --tty alkitab-nginx sh
+	docker exec --interactive --tty $$(docker ps --quiet --filter ancestor='alkitab-frontend') sh
