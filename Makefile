@@ -47,7 +47,7 @@ frontend/build: | exists/cmd/docker
 ## Runs nginx docker image with frontend static files
 nginx/run: | exists/cmd/docker frontend/build
 	@echo "$(GREEN)Running alkitab-frontend in NGINX in docker...$(RESETCOLOR)"
-	docker run --name alkitab-nginx --publish 8080:80 --volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
+	docker run --rm --name alkitab-nginx --publish 8080:80 --volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
 
 .PHONY: nginx/sh
 ## sh into running nginx container
