@@ -1,9 +1,21 @@
 import express from 'express';
-import logging from './middlewares/logging';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
+import session from 'express-session';
+
+import logging from './middlewares/logging';
+
 import config from './config/general';
+
 import userRouter from './routes/user';
+
+import User from './models/user';
+
+// const adminUser = new User({
+// 	username: "admin",
+// 	password: "123456"
+// })
+// adminUser.save()
 
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
@@ -23,6 +35,27 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 // Request parsing
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// Session
+declare module 'express-session' {
+	export interface SessionData {
+	  user: string;
+	}
+  }
+
+app.use(
+	session({
+	  secret: "please change this secret",
+	  resave: false,
+	  saveUninitialized: true,
+	})
+);
+
+
+
+
+
+
 
 // API Routes
 app.use('/api/users', userRouter);
