@@ -1,5 +1,7 @@
 version: "3.8"
 services:
+
+  # Databases 
   mongodb:
     container_name: mongodb
     image: mongo
@@ -12,10 +14,11 @@ services:
   postgres:
     container_name: postgres
     build:
-      context: ./SQL
+      context: ./dbs/SQL
       dockerfile: Dockerfile
     environment:
       POSTGRES_PASSWORD: 123456
       POSTGRES_USER: root
     ports:
       - "5432:5432"
+

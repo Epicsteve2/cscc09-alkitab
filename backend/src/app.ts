@@ -39,6 +39,13 @@ mongoose
 	.then((r) => logging.info(NAMESPACE, 'Connected to MongoDB Database!'))
 	.catch((error) => logging.error(NAMESPACE, error.message, error));
 
+console.log(config.mongo.options)
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", () => {
+  console.log("Database connected");
+});
+
 // Creating the server
 app.listen(config.server.port, () => {
 	logging.info(NAMESPACE, `Server running on ${config.server.hostname}:${config.server.port}`);
