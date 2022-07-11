@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: books
+    ports:
+      - "27017:27017"
+  postgres:
+    container_name: postgres
+    build:
+      context: ./SQL
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: root
+    ports:
+      - "5432:5432"
