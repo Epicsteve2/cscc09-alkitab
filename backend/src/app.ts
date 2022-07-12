@@ -2,12 +2,14 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import session from 'express-session';
+import multer from 'multer';
 
 import logging from './middlewares/logging';
 
 import config from './config/general';
 
 import userRouter from './routes/user';
+import libraryRouter from './routes/library';
 
 import User from './models/user';
 
@@ -16,6 +18,8 @@ import User from './models/user';
 // 	password: "123456"
 // })
 // adminUser.save()
+
+
 
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
@@ -52,6 +56,8 @@ app.use(
 );
 
 
+const upload = multer({ dest: 'uploads/' });
+
 
 
 
@@ -59,6 +65,7 @@ app.use(
 
 // API Routes
 app.use('/api/users', userRouter);
+app.use('/api/library/', libraryRouter)
 
 // Error Handling
 app.use((req, res, next) => {
