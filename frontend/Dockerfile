@@ -1,6 +1,6 @@
 FROM node:16-alpine3.16 AS build
 
-WORKDIR /alkitab
+WORKDIR /alkitab-frontend
 
 COPY package.json package-lock.json ./
 RUN npm clean-install
@@ -8,7 +8,7 @@ COPY . ./
 RUN npm run build
 
 FROM nginx:1.23-alpine
-COPY --from=build /alkitab/dist /usr/share/nginx/html
+COPY --from=build /alkitab-frontend/dist /usr/share/nginx/html
 
 ## The following syntax doesn't work because it's
 ## outside of the build context. I hate docker >:(

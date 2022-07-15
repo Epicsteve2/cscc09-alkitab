@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  mongodb:
+    container_name: alkitab-mongodb
+    image: mongo:5.0.9-focal
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: books
+    # TODO: Change to expose for production
+    ports:
+      - 27017:27017
+    networks:
+      - alkitab
+
+  alkitab-backend:
+    container_name: alkitab-backend
+    build:
+      context: ./backend
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_DB_NAME: books
+      MONGO_PORT: 27017
+      USERNAME: root
+      PASS: 123456
+    networks:
+      - alkitab
+    # TODO: Change to expose for production
+    ports:
+      - 3000:3000
+
+  alkitab-frontend:
+    container_name: alkitab-frontend
+    build:
+      context: ./frontend
+    depends_on:
+      - alkitab-backend
+    networks:
+      - alkitab
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+networks:
+  alkitab:
