@@ -7,5 +7,6 @@ const upload = multer({ dest: "tempstore/" });
 
 libraryRouter.post('/book', upload.fields([{ name: "book", maxCount: 1 }]), libraryController.upload);
 
+libraryRouter.post('/test', upload.fields([{ name: "book", maxCount: 1 }]), libraryController.test);
 
 export default libraryRouter;
