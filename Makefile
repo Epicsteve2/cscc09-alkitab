@@ -37,6 +37,12 @@ exists/cmd/%:
 exists/env/%:
 	@if [ -z '$($(*))' ]; then echo "ERROR: environment variable '$*' not set" && exit 1; fi
 
+.PHONY: backend/build
+## Builds backend docker image
+backend/build: | exists/cmd/docker
+	@echo "$(GREEN)Building alkitab-backend...$(RESETCOLOR)"
+	docker build --tag alkitab-backend ./backend
+
 .PHONY: frontend/build
 ## Builds frontend docker image
 frontend/build: | exists/cmd/docker
