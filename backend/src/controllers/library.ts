@@ -8,74 +8,59 @@ import Epub from "epub";
 
 
 
-import  {HTMLTree} from '../util/htmlTree';
-import BookTree from '../models/bookTree';
-import { DictTree } from '../util/bookTree';
-import IBookTree from '../interfaces/bookTree';
+import BookT from '../models/book';
+import IBook from '../interfaces/book';
+import Book from '../models/book';
 
 const NAMESPACE = 'Library Controller';
 
-// const chapterToTree = async function(epub: Epub, chapter: string): Promise<HTMLTree>{
-//     let bodyT:HTMLTree;
-
-//     await new Promise<void>((resolve, reject) => {
-//         epub.getChapterRaw(chapter, function(err: any, text: string){
-//             const root = parse(text);
-//             const body = root.querySelector("body");
-//             bodyT = new HTMLTree(body)
-//             resolve();
-//         });
-//     }).then(() =>{
-//         return bodyT;}
-//     )
-    
 
 
-// }
-
-
-
-
-
-
-
-
-
-
-
-const recurProcessChapters = function(chapters: Array<string>, bookTree: IBookTree, epub: Epub){
+const recurProcessChapters = async function(chapters: Array<string>, book: IBook, epub: Epub){
     if (chapters.length === 0){
-       bookTree.save()
+       book.save();
+       console.log("SAVEDSAEVD")
     } else {
         epub.getChapterRaw(chapters[0], async function(err: any, text: string){
             const root = parse(text);
             const body = root.querySelector("body");
-            processTree(body);
-            const bodyT = new HTMLTree(body)
-            const bookDictTree: DictTree = {
-                chapter: chapters[0],
-                tree: bodyT
-            }
-            bookTree.trees.push(bookDictTree);
-            recurProcessChapters(chapters.slice(1), bookTree, epub)
+            console.log(body?.toString().substring(0,500)+"\n"+ body?.rawTagName+ "\n\n\n")
+            console.log("chapter:"+chapters[0])
+            processTree(body, book);
+            
+            recurProcessChapters(chapters.slice(1), book, epub)
         });
     }
 
 }
 
-const processTree = function(tree:any){
-    let pages = {}
-    const treeC = getBaseNode2(tree)
-    getNode2(500, tree, treeC);
+const processTree = function(tree:any, book:IBook){
+    while (tree.toString().length > 0){
+        if (tree.toString().length <= 1000){
+            processTreeToPage2(book, tree)
+            break;
+        }
+        else {
+            const treeC = getBaseNode2(tree)
+            // console.log("BASE" + treeC.toString())
+            getNode2(book, 1000, tree, treeC);
+        }
+            
+    }
+    
 }
 
-const getNode2 = function(charsLeft:number, tree:any, treeC:any){
+const getNode2 = function(book: IBook, charsLeft:number, tree:any, treeC:any){
     // const child = tree.childNodes[0]
+    // console.log("LEFTINIT" + charsLeft);
     for (var child of tree.childNodes){
+        // console.log("LEFTLOOP"+ charsLeft)
+        // console.log("child is " + child.toString())
         if (child.toString().length <= charsLeft){
             treeC.appendChild(child.clone())
             tree.removeChild(child)
             charsLeft -= child.toString().length;
+            // console.log("ADDED child:" + child.toString() + ":with length:"+ child.toString().length)
         } else {
             if (child.nodeType === 3){
                 const leafCopy = getBaseNode2(child)
@@ -83,11 +68,19 @@ const getNode2 = function(charsLeft:number, tree:any, treeC:any){
                 treeC.appendChild(leafCopy);
 
                 child.rawText = child.rawText.substring(charsLeft);
-                processTreeToPage2(leafCopy);
+                processTreeToPage2(book, leafCopy);
+                break;
             } else {
                 const childC = getBaseNode2(child);
-                treeC.appendChild(childC)
-                getNode2(charsLeft - childC.toString().length, child, childC)
+                if (charsLeft - childC.toString().length <= 0){
+                    processTreeToPage2(book, treeC);
+                    break;
+                } else {
+                    treeC.appendChild(childC)
+                    getNode2(book, charsLeft - childC.toString().length, child, childC)
+                    break;
+                }   
+                
             }
         }
         
@@ -95,67 +88,25 @@ const getNode2 = function(charsLeft:number, tree:any, treeC:any){
     }
 }
 
-const processTreeToPage2 = function(tree:any){
+const processTreeToPage2 = function(book: IBook, tree:any){
+    while (tree.rawTagName !== 'body'){
+        tree = tree.parentNode;
+    }
+    console.log("\n")
+    console.log(tree.toString())
+    book.pages.push(tree.toString())
+    console.log("\n")
 
 }
 
 const getBaseNode2 = function(tree:any){
     const treeC = tree.clone()
-    for (var child of treeC){
+    for (var child of treeC.childNodes){
         treeC.removeChild(child)
     }
     return treeC;
 }
 
-
-// const recrProcessTrees = function(bookTrees:Array<DictTree>, pages:Array<string>){
-//     if (bookTrees.length === 0){
-//         return pages;
-//     } else{
-//         pages = processTreeToPage(bookTrees[0].tree, pages)
-//     }
-// }
-
-// const processTreeToPage = function(tree: HTMLTree, pages:Array<string>){
-//     const treeC = getBaseBranchNode(tree);
-//     recurGetNode(500, tree, treeC);
-//     const children = tree.children;
-    
-//     const curChild = tree.children[0]
-//     if (curChild.nodeType === 3){
-//         if curChild.stringLenght < 
-//     }
-
-// }
-
-// const recurGetNode = function(charsLeft:number, node:HTMLTree, nodeC){
-
-//     const curChild = node.children[0];
-//     if (curChild.nodeType === 3){
-//         if (curChild.stringLenght <= charsLeft){
-            
-//         }
-//     }
-
-// }
-
-const getBaseBranchNode = function(tree: HTMLTree){
-    let stringRep = "<" + tree.tag.toLowerCase() + " " + tree.rawAttrs + "></"+ tree.tag.toLowerCase() + ">";
-    console.log(stringRep);
-    const node = parse(stringRep);
-    const node2 = node.querySelector(tree.tag.toLowerCase())
-    return node2
-}
-
-const recrAddAttrs = function(stringRep:string, attributes: {}){
-    if (Object.keys(attributes).length === 0)
-        return stringRep;
-    
-    else {
-
-    }
-
-}
 
 export const upload: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;
@@ -166,73 +117,62 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
     epub.parse();
     epub.on("end", async function () {
         const chapters = epub.flow.map(element => element.id);
-        const newBookTree = new BookTree({
-            chapters: chapters
-        });
+        
 
-        recurProcessChapters(chapters, newBookTree, epub);
+        // epub.getChapterRaw(chapters[1], async function(err: any, text: string){
+        //     const root = parse(text);
+        //     const body = root.querySelector("body");
+        //     // console.log(body)
+        //     console.log(body?.toString())
+        //     // if (body)
+        //     // body.parentNode = undefined;
+        //     console.log("THIS IS BEFORE\n\n")
+        //     processTree(body);
+            
+        // });
 
-        // setTimeout(function(){
-        //     const pages = []
-        //     console.log(newBookTree);
-        //     recrProcessTrees(newBookTree.trees, pages);
-        // }, 1000);
+        const book = new Book([]);
+        recurProcessChapters(chapters, book, epub);
+
 
     });
 
     
 };
 
-const getBase = function(tree:HTMLTree){
-    tree.children = [];
-    return tree;
-}
 
 export const test: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;
 
-    const text = "<html>daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i></html>"
+    const text = `<html>
+    1daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    2daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    3daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    4daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    5daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    6daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    7daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    8daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    9daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Adaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Bdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Cdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Ddaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Edaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Fdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Gdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    Hdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
+    </html>
+`;
     const root = parse(text);
     const textnode = parse("hello").firstChild
     // console.log(textnode.childNodes[0]);
-    const bodyT = new HTMLTree(root.childNodes[0]);
-    textnode.rawText = textnode.rawText.substring(0,3);
-    console.log(textnode);
+    // processTree(root.firstChild);
 
-    // const bodyC = getBaseBranchNode(bodyT.children[1]);
-    // const bodyC2 = getBaseBranchNode(bodyT.children[2]);
-    // console.log(bodyC);
-    // console.log(bodyC2);
-    // bodyC2?.appendChild(textnode);
-    // if (bodyC)
-    //     if (bodyC2){
-    //         bodyC2.appendChild(textnode)
-    //         bodyC.appendChild(bodyC2)
-    //     }
         
         
     
-    // console.log(bodyC);
-    // console.log(bodyC?.toString())
-
-    // console.log(bodyT);
-    // console.log(bodyT.children[1])
-    // console.log(Object.keys(bodyT.children[1].attributes))
-    // for (const key in bodyT.children[1].attributes){
-    //     console.log(key)
-    //     console.log(bodyT.children[1].attributes[key])
-    // }
-    // const strRep = "<p"  
-    // const attrsStringRep = Object.keys(bodyT.children[1].attributes).map(attr => {
-    //     return `${attr}=\"${bodyT.children[1].attributes[attr]}\"`
-    // })
-
-    // const fin = attrsStringRep.reduce(
-    //     (strRep, attrStringRep) => `${strRep} ${attrStringRep}`,
-    //     strRep
-    // )
-    // const fin2 = `${fin}><\\p>`
-    // console.log(fin2);
+   
 
 
 
