@@ -3,6 +3,7 @@ import { RequestHandler } from 'express/ts4.0';
 import multer from 'multer';
 import { expect } from "chai";
 import { extname } from 'path';
+import fs from 'fs';
 import { parse } from 'node-html-parser';
 import Epub from "epub";
 
@@ -11,14 +12,19 @@ import Epub from "epub";
 import BookT from '../models/book';
 import IBook from '../interfaces/book';
 import Book from '../models/book';
+import { fstat } from 'fs';
 
 const NAMESPACE = 'Library Controller';
 
 
 
-const recurProcessChapters = async function(chapters: Array<string>, book: IBook, epub: Epub){
+const recurProcessChapters = async function(chapters: Array<string>, book: IBook, epub: Epub, callback: () => void){
     if (chapters.length === 0){
-       book.save();
+       book.numPages = book.pages.length;
+       const numPages = book.numPages;
+       await book.save();
+       callback();
+       console.log(numPages);
        console.log("SAVEDSAEVD")
     } else {
         epub.getChapterRaw(chapters[0], async function(err: any, text: string){
@@ -28,7 +34,7 @@ const recurProcessChapters = async function(chapters: Array<string>, book: IBook
             console.log("chapter:"+chapters[0])
             processTree(body, book);
             
-            recurProcessChapters(chapters.slice(1), book, epub)
+            await recurProcessChapters(chapters.slice(1), book, epub, callback)
         });
     }
 
@@ -92,10 +98,10 @@ const processTreeToPage2 = function(book: IBook, tree:any){
     while (tree.rawTagName !== 'body'){
         tree = tree.parentNode;
     }
-    console.log("\n")
-    console.log(tree.toString())
+    // console.log("\n")
+    // console.log(tree.toString())
     book.pages.push(tree.toString())
-    console.log("\n")
+    // console.log("\n")
 
 }
 
@@ -113,39 +119,30 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
     const book = new Book({
         user: req.body.username,
         sharedUsers: [],
-        pages: []
+        pages: [],
+        bookPost: req.body.bookPost || "Mock" 
     });
-    
+
+    console.log(book._id);
+
     const files = req.files as { [fieldname: string]: Express.Multer.File[]};
     const bookPath = files.book[0].path
 
     let epub = new Epub(bookPath);
     epub.parse();
     epub.on("end", async function () {
-        const chapters = epub.flow.map(element => element.id);
-        
-
-        // epub.getChapterRaw(chapters[1], async function(err: any, text: string){
-        //     const root = parse(text);
-        //     const body = root.querySelector("body");
-        //     // console.log(body)
-        //     console.log(body?.toString())
-        //     // if (body)
-        //     // body.parentNode = undefined;
-        //     console.log("THIS IS BEFORE\n\n")
-        //     processTree(body);
-            
-        // });
-
-        
-        recurProcessChapters(chapters, book, epub);
-
-
+        const chapters = epub.flow.map(element => element.id);  
+        fs.unlink(bookPath, (err) =>{
+            console.log(err);
+        });
+        const callbackBookSaved = function(){
+            res.status(200).json({msg:"uploaded", id:book._id})
+        }
+        await recurProcessChapters(chapters, book, epub, callbackBookSaved);
     });
 
     
 };
-
 
 export const test: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;
@@ -175,13 +172,27 @@ export const test: RequestHandler = async (req: Request, res: Response, next: Ne
     // console.log(textnode.childNodes[0]);
     // processTree(root.firstChild);
 
-        
-        
     
-   
+};
 
+export const getBook: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const page = req.query.page ? Number(req.query.page) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 1;
+    const bookId = req.params.id;
+
+    const book =  await Book.findOne({_id: bookId});
+    if (book){
+        console.log("found");
+        res.status(200).json({pages: book.pages.slice(page, page+limit)})
+    } else {
+        res.status(404).json({msg:"not found"})
+    }
 
 
 
     
 };
+
+
+
+
