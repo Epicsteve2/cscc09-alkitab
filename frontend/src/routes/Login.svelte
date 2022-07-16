@@ -1,5 +1,52 @@
 <script lang="ts">
-  import { Container } from "sveltestrap";
+  import {
+    Container,
+    Toast,
+    ToastBody,
+    ToastHeader,
+    Spinner,
+  } from "sveltestrap";
+  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
+
+  let username = "";
+  let password = "";
+
+  let loginPromise: Promise<Object> = Promise.resolve("");
+  async function register(username: string, password: string): Promise<Object> {
+    const response = await self.fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      }
+    );
+
+    toastIsOpen = true;
+
+    if (response.ok) {
+      window.location.replace("/");
+      return response.json();
+    } else {
+      let errorMessage: string = await response.json();
+      throw new Error(errorMessage);
+    }
+  }
+
+  function handleRegister() {
+    loginPromise = register(username, password);
+  }
+
+  let toastIsOpen = true;
+
+  function toggleToast() {
+    toastIsOpen = !toastIsOpen;
+  }
 </script>
 
 <Container class="py-3 ">
@@ -7,23 +54,43 @@
     <h1 class="text-center my-5">Alkitab 📚</h1>
     <h3 class="py-3">Login</h3>
     <div class="form-outline mb-4">
-      <input type="text" id="username-form" class="form-control" />
+      <input
+        type="text"
+        id="username-form"
+        class="form-control"
+        bind:value={username}
+      />
       <label class="form-label" for="username-form">Username</label>
     </div>
 
     <div class="form-outline mb-4">
-      <input type="password" id="password-form" class="form-control" />
+      <input
+        type="password"
+        id="password-form"
+        class="form-control"
+        bind:value={password}
+      />
       <label class="form-label" for="password-form">Password</label>
     </div>
 
     <div class="d-grid pb-4 gap-3">
       <button class="btn btn-warning " type="button">Sign In</button>
-      <!-- <button class="btn btn-warning " type="button">Register</button> -->
+      <button class="btn btn-warning " type="button" on:click={handleRegister}
+        >Register</button
+      >
     </div>
-
-    <div class="text-center">
-      <p>Not a member? <a href="#!">Register</a></p>
-    </div>
+    {#await loginPromise}
+      <Spinner size="sm" />
+    {:catch error}
+      <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">
+        <Toast isOpen={toastIsOpen}>
+          <ToastHeader toggle={toggleToast}>Register Error</ToastHeader>
+          <ToastBody>
+            <p style="color: red">{error.message}</p>
+          </ToastBody>
+        </Toast>
+      </div>
+    {/await}
   </form>
 </Container>
 

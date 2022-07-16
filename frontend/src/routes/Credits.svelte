@@ -34,6 +34,20 @@
       tag="a"
       >NGINX redirect all http requests to <code>index.html</code>
     </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://timdeschryver.dev/blog/environment-variables-with-sveltekit"
+      action
+      tag="a"
+      >Svelte environment variables
+    </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://stackoverflow.com/a/58078233"
+      action
+      tag="a"
+      >CORS issues for local development
+    </ListGroupItem>
   </ListGroup>
 </Container>
 

@@ -35,6 +35,9 @@ services:
     container_name: alkitab-frontend
     build:
       context: ./frontend
+      args:
+        VITE_ALKITAB_BACKEND_PORT: 8080
+        VITE_ALKITAB_BACKEND_URL: localhost
     depends_on:
       - alkitab-backend
     networks:
@@ -43,6 +46,19 @@ services:
       - 8080:80
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  # Testing for developing
+  cors-proxy:
+    container_name: alkitab-cors-proxy
+    image: nginx:1.23-alpine
+    depends_on:
+      - alkitab-backend
+    networks:
+      - alkitab
+    volumes:
+      - ./nginx/cors-proxy.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8010:80
 
 networks:
   alkitab:
