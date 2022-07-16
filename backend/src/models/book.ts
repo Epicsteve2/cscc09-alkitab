@@ -1,5 +1,4 @@
 import IBook from '../interfaces/book';
-import IUser from '../interfaces/user';
 import mongoose, { Schema } from 'mongoose';
 
 const BookSchema: Schema = new Schema(

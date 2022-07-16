@@ -110,6 +110,12 @@ const getBaseNode2 = function(tree:any){
 
 export const upload: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;
+    const book = new Book({
+        user: req.body.username,
+        sharedUsers: [],
+        pages: []
+    });
+    
     const files = req.files as { [fieldname: string]: Express.Multer.File[]};
     const bookPath = files.book[0].path
 
@@ -131,7 +137,7 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
             
         // });
 
-        const book = new Book([]);
+        
         recurProcessChapters(chapters, book, epub);
 
 

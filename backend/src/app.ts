@@ -66,6 +66,7 @@ const upload = multer({ dest: 'uploads/' });
 // API Routes
 app.use('/api/users', userRouter);
 app.use('/api/library/', libraryRouter)
+app.use('/api/bookpost/', libraryRouter)
 
 // Error Handling
 app.use((req, res, next) => {
