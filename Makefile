@@ -55,7 +55,7 @@ frontend/build: | exists/cmd/docker
 
 .PHONY: frontend/run
 ## Runs frontend with CORS proxy port
-frontend/run: | exists/cmd/docker
+frontend/run: | exists/cmd/npm
 	@echo "$(GREEN)Running alkitab-frontend locally...$(RESETCOLOR)"
 	cd frontend/ && \
 	VITE_ALKITAB_BACKEND_PORT=8010 npm run dev -- --port 3001
@@ -90,16 +90,36 @@ nginx/sh: | exists/cmd/docker
 
 .PHONY: backend/docker-compose
 ## Brings up only mongodb and express server using docker-compoes
-backend/docker-compose:
+backend/docker-compose: | exists/cmd/docker-compose
 	@echo "$(GREEN)Bringing up mongodb and express server...$(RESETCOLOR)"
 	docker-compose up \
 		--build \
 		--remove-orphans \
-		--abort-on-container-exit \
 		alkitab-backend mongodb
 
 .PHONY: backend/proxy
 ## Brings up CORS proxy for the backend to fix dev issues
-backend/proxy:
+backend/proxy: | exists/cmd/npx
 	@echo "$(GREEN)Bringing up CORS proxy for the express server...$(RESETCOLOR)"
 	npx lcp --proxyUrl 'http://localhost:3000'
+
+.PHONY: docker-compose/develop
+## Brings up all containers for development
+docker-compose/develop: | exists/cmd/docker-compose
+	@echo "$(GREEN)Bringing up all containers for development...$(RESETCOLOR)"
+	docker-compose \
+		--profile develop \
+		up \
+		--build \
+		--remove-orphans
+
+.PHONY: docker-compose/rebuild-frontend
+## Rebuilds and runs frontend container
+docker-compose/rebuild-frontend: | exists/cmd/docker-compose
+	@echo "$(GREEN)Rebuilding frontend container...$(RESETCOLOR)"
+	docker-compose up \
+		--force-recreate \
+		--detach \
+		--no-deps \
+		--build \
+		alkitab-frontend

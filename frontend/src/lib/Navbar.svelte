@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import {
     Collapse,
     Navbar,
@@ -6,7 +8,31 @@
     NavbarBrand,
     Nav,
     NavItem,
+    Toast,
+    ToastBody,
+    ToastHeader,
+    Spinner,
   } from "sveltestrap/src";
+
+  import {
+    ALKITAB_BACKEND_URL,
+    ALKITAB_BACKEND_PORT,
+    currentUser,
+  } from "../stores";
+
+  let isLoggedIn: boolean;
+
+  onMount(async () => {
+    const whoamiResponse = await fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`
+    );
+    let getCurrentUser = await whoamiResponse.json();
+    currentUser.set(getCurrentUser.user || "");
+  });
+
+  currentUser.subscribe((value) => {
+    isLoggedIn = Boolean(value);
+  });
 
   import { Link } from "svelte-routing";
 
@@ -14,6 +40,33 @@
 
   function handleUpdate(event) {
     isOpen = event.detail.isOpen;
+  }
+
+  let toastIsOpen = false;
+
+  let logoutPromise: Promise<Object> = Promise.resolve("");
+  async function logout(): Promise<Object> {
+    const response = await self.fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/logout`,
+      { method: "GET" }
+    );
+
+    toastIsOpen = true;
+
+    if (response.ok) {
+      currentUser.set("");
+
+      window.location.replace("/");
+      return Promise.resolve("");
+    } else {
+      let errorMessage: string = await response.text();
+      console.log({ errorMessage });
+      throw new Error(errorMessage);
+    }
+  }
+
+  function toggleToast() {
+    toastIsOpen = !toastIsOpen;
   }
 </script>
 
@@ -38,11 +91,33 @@
       </Nav>
       <Nav navbar>
         <NavItem class="px-2">
-          <Link to="/login-signup" class="nav-link">Login/Signup</Link>
+          {#if !isLoggedIn}
+            <Link to="/login-signup" class="nav-link">Login/Signup</Link>
+          {:else}
+            <div
+              on:click={() => {
+                logoutPromise = logout();
+              }}
+            >
+              Logout
+            </div>
+          {/if}
         </NavItem>
       </Nav>
     </Collapse>
   </Navbar>
+  {#await logoutPromise}
+    <Spinner size="sm" />
+  {:catch error}
+    <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">
+      <Toast isOpen={toastIsOpen}>
+        <ToastHeader toggle={toggleToast}>Register Error</ToastHeader>
+        <ToastBody>
+          <p style="color: red">{error.message}</p>
+        </ToastBody>
+      </Toast>
+    </div>
+  {/await}
 </header>
 
 <style lang="scss">

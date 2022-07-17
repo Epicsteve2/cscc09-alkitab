@@ -3,6 +3,7 @@ services:
   mongodb:
     container_name: alkitab-mongodb
     image: mongo:5.0.9-focal
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
@@ -59,6 +60,8 @@ services:
       - ./nginx/cors-proxy.conf:/etc/nginx/nginx.conf:ro
     ports:
       - 8010:80
+    profiles:
+      - develop
 
 networks:
   alkitab:
