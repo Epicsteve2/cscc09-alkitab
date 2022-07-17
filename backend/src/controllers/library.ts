@@ -4,6 +4,7 @@ import multer from 'multer';
 import { expect } from "chai";
 import { extname } from 'path';
 import fs from 'fs';
+import mongoose from 'mongoose';
 import { parse } from 'node-html-parser';
 import Epub from "epub";
 
@@ -98,11 +99,7 @@ const processTreeToPage2 = function(book: IBook, tree:any){
     while (tree.rawTagName !== 'body'){
         tree = tree.parentNode;
     }
-    // console.log("\n")
-    // console.log(tree.toString())
     book.pages.push(tree.toString())
-    // console.log("\n")
-
 }
 
 const getBaseNode2 = function(tree:any){
@@ -169,18 +166,15 @@ export const test: RequestHandler = async (req: Request, res: Response, next: Ne
 `;
     const root = parse(text);
     const textnode = parse("hello").firstChild
-    // console.log(textnode.childNodes[0]);
-    // processTree(root.firstChild);
-
-    
 };
 
 export const getBook: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const page = req.query.page ? Number(req.query.page) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 1;
     const bookId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
 
-    const book =  await Book.findOne({_id: bookId});
+    const book =  await Book.findById(bookId);
     if (book){
         console.log("found");
         res.status(200).json({pages: book.pages.slice(page, page+limit)})
