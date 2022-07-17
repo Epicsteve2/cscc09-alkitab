@@ -7,6 +7,7 @@ const BookSchema: Schema = new Schema(
 		sharedUsers: { type: Array<String> },
 
 		bookPost: { type: String, required: true},
+		title: { type: String, required: true},
 
 		pages: { type: Array<String>, required: true },
 		numPages: { type: Number },

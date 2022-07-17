@@ -3,6 +3,8 @@ import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import session from 'express-session';
 import multer from 'multer';
+import socketio from 'socket.io';
+import { Server } from "socket.io";
 
 import logging from './middlewares/logging';
 
@@ -10,6 +12,8 @@ import config from './config/general';
 
 import userRouter from './routes/user';
 import libraryRouter from './routes/library';
+
+import {ServerToClientEvents,ClientToServerEvents, InterServerEvents, SocketData} from './interfaces/socketio'
 
 import User from './models/user';
 
@@ -82,7 +86,41 @@ app.use(
 const upload = multer({ dest: 'uploads/' });
 
 
+// Sockets
+const usersInBookRoom = new Map();
+const bookRoomOfUser = new Map();
 
+const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>();
+io.on("connection", (socket) => {
+	console.log("connected");
+
+	// socket.emit("noArg");
+	// socket.emit("basicEmit", 1, "2", Buffer.from([3]));
+	// socket.emit("withAck", "4", (e) => {
+	//   // e is inferred as number
+	// });
+	// socket.on("details", () => {
+	// 	// if (usersInBookRoom.get(bookRoomId)) {
+	// 	// 	const curUsers = usersInBookRoom.get(bookRoomId);
+	// 	// 	curUsers.push(socket.id);
+	// 	// 	usersInBookRoom.set(bookRoomId, curUsers);
+	// 	// } else {
+	// 	// 	usersInBookRoom.set(bookRoomId, [socket.id])
+	// 	// }
+	// 	// bookRoomOfUser.set(socket.id, bookRoomId);
+		
+	// 	// socket.emit("all users", "ljdsak")
+	// 	// ...
+	// });
+
+	
+  
+	// works when broadcast to all
+	// io.emit("noArg");
+  
+	// works when broadcasting to a room
+
+});
 
 
 

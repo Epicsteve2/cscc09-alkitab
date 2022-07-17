@@ -11,4 +11,6 @@ libraryRouter.get('/book/:id', libraryController.getBook);
 
 libraryRouter.post('/test', upload.fields([{ name: "book", maxCount: 1 }]), libraryController.test);
 
+libraryRouter.get('/', libraryController.getLibrary);
+
 export default libraryRouter;

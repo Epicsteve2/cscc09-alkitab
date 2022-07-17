@@ -11,4 +11,7 @@ userRouter.get('/logout', userController.logout);
 
 userRouter.get('/whoami', userController.whoami);
 
+userRouter.get('/', userController.getUsers);
+
+
 export default userRouter;

@@ -9,11 +9,12 @@ import { parse } from 'node-html-parser';
 import Epub from "epub";
 
 
-
+import User from '../models/user';
 import BookT from '../models/book';
 import IBook from '../interfaces/book';
 import Book from '../models/book';
 import { fstat } from 'fs';
+import EPub from 'epub';
 
 const NAMESPACE = 'Library Controller';
 
@@ -114,27 +115,36 @@ const getBaseNode2 = function(tree:any){
 export const upload: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;
     const book = new Book({
-        user: req.body.username,
+        user: req.session.user || req.body.username ,
         sharedUsers: [],
         pages: [],
-        bookPost: req.body.bookPost || "Mock" 
+        bookPost: req.body.bookPost || "Mock",
+        title: "Placeholder"
     });
 
-    console.log(book._id);
-
+    
     const files = req.files as { [fieldname: string]: Express.Multer.File[]};
     const bookPath = files.book[0].path
 
     let epub = new Epub(bookPath);
     epub.parse();
     epub.on("end", async function () {
+
+        book.title = epub.metadata.title;
         const chapters = epub.flow.map(element => element.id);  
+
+
+
         fs.unlink(bookPath, (err) =>{
             console.log(err);
         });
+
+
         const callbackBookSaved = function(){
             res.status(200).json({msg:"uploaded", id:book._id})
         }
+
+
         await recurProcessChapters(chapters, book, epub, callbackBookSaved);
     });
 
@@ -182,10 +192,18 @@ export const getBook: RequestHandler = async (req: Request, res: Response, next:
         res.status(404).json({msg:"not found"})
     }
 
-
-
-    
 };
+
+export const getLibrary: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const limit = req.query.limit ? Number(req.query.limit) : 5;
+    const username = req.session.user || req.query.user
+
+    const books = await Book.find({user: username}).select('-pages').limit(limit);
+
+    res.status(200).json(books);
+
+};
+
 
 
 

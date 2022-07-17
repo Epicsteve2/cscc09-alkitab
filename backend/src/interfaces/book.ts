@@ -6,4 +6,5 @@ export default interface IBook extends Document {
     sharedUsers: Array<String>;
 	bookPost: String;
 	numPages: Number;
+	title: String;
 }

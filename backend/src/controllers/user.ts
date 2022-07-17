@@ -66,8 +66,30 @@ export const register: RequestHandler = async (req: Request, res: Response, next
 };
 
 export const whoami: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("called");
     if (!req.session.user) return res.status(200).json("Not logged in");
     else return res.status(200).json({user: req.session.user});
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const getUsers: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const limit = req.query.limit ? Number(req.query.limit) : 1;
+    
+    const users = await User.find({}).sort({username: 'asc'}).limit(limit);
+    const usernames = users.map(user => user.username);
+    
+    res.status(200).json({users: usernames})
+};
+
+
 
