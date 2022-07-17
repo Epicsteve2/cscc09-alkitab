@@ -51,13 +51,23 @@ frontend/build: | exists/cmd/docker
 
 	@# For production, we want to directly add nginx.conf to the docker image instead of mounting it as a volume
 	@#echo "$(GREEN)Building alkitab-frontend with the NGINX config file...$(RESETCOLOR)"
-	@#docker build --tag alkitab-frontend ./frontend --build-arg NGINX_CONFIG="$$(<nginx/nginx.conf)"
+	@#docker build --tag alkitab-frontend --build-arg NGINX_CONFIG="$$(<nginx/nginx.conf)" ./frontend
+
+.PHONY: frontend/run
+## Runs frontend with CORS proxy port
+frontend/run: | exists/cmd/npm
+	@echo "$(GREEN)Running alkitab-frontend locally...$(RESETCOLOR)"
+	cd frontend/ && \
+	VITE_ALKITAB_BACKEND_PORT=8010 npm run dev -- --port 3001
 
 .PHONY: nginx/run
 ## Runs nginx docker image with frontend static files
 nginx/run: | exists/cmd/docker frontend/build
 	@echo "$(GREEN)Running alkitab-frontend with mounted NGINX config file in docker...$(RESETCOLOR)"
-	docker run --publish 8080:80 --volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro alkitab-frontend
+	docker run \
+		--publish 8080:80 \
+		--volume "$$(pwd)"/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+		alkitab-frontend
 
 	@# For production, we want to directly add nginx.conf to the docker image instead of mounting it as a volume
 	@#echo "$(GREEN)Running alkitab-frontend in NGINX in docker...$(RESETCOLOR)"
@@ -72,4 +82,44 @@ nginx/sh: | exists/cmd/docker
 	@echo "$(CYAN)cd /usr/share/nginx/html$(RESETCOLOR)"
 	@echo
 	@echo "$(GREEN)Running sh in NGINX container...$(RESETCOLOR)"
-	docker exec --interactive --tty $$(docker ps --quiet --filter ancestor='alkitab-frontend') sh
+	docker exec \
+		--interactive \
+		--tty \
+		"$$(docker ps --quiet --filter ancestor='alkitab-frontend')" \
+		sh
+
+.PHONY: backend/docker-compose
+## Brings up only mongodb and express server using docker-compoes
+backend/docker-compose: | exists/cmd/docker-compose
+	@echo "$(GREEN)Bringing up mongodb and express server...$(RESETCOLOR)"
+	docker-compose up \
+		--build \
+		--remove-orphans \
+		alkitab-backend mongodb
+
+.PHONY: backend/proxy
+## Brings up CORS proxy for the backend to fix dev issues
+backend/proxy: | exists/cmd/npx
+	@echo "$(GREEN)Bringing up CORS proxy for the express server...$(RESETCOLOR)"
+	npx lcp --proxyUrl 'http://localhost:3000'
+
+.PHONY: docker-compose/develop
+## Brings up all containers for development
+docker-compose/develop: | exists/cmd/docker-compose
+	@echo "$(GREEN)Bringing up all containers for development...$(RESETCOLOR)"
+	docker-compose \
+		--profile develop \
+		up \
+		--build \
+		--remove-orphans
+
+.PHONY: docker-compose/rebuild-frontend
+## Rebuilds and runs frontend container
+docker-compose/rebuild-frontend: | exists/cmd/docker-compose
+	@echo "$(GREEN)Rebuilding frontend container...$(RESETCOLOR)"
+	docker-compose up \
+		--force-recreate \
+		--detach \
+		--no-deps \
+		--build \
+		alkitab-frontend

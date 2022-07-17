@@ -2,10 +2,29 @@
   import logo from "../assets/svelte.png";
   import Counter from "../lib/Counter.svelte";
 
+  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
+
   // Bootstrap testing
   import { Button, Modal } from "sveltestrap";
   let isOpen: boolean = false;
   const toggle: () => void = () => (isOpen = !isOpen);
+
+  async function whoami() {
+    const response = await self.fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (response.ok) {
+      let user = await response.json();
+      console.log({ user });
+    } else {
+      let errorMessage: string = await response.text();
+      console.log({ errorMessage });
+    }
+  }
 </script>
 
 <main>
@@ -33,6 +52,12 @@
 
   <Button color="primary" on:click={toggle}
     >This opens up a modal (Idk what that is lol)</Button
+  >
+  <Button
+    color="danger"
+    on:click={() => {
+      whoami();
+    }}>Test whoami</Button
   >
   <Modal body {isOpen} {toggle} header="Hello World!">
     <p>There's a song that we're singing. Come on</p>

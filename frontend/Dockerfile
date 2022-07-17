@@ -5,6 +5,8 @@ WORKDIR /alkitab-frontend
 COPY package.json package-lock.json ./
 RUN npm clean-install
 COPY . ./
+ARG VITE_ALKITAB_BACKEND_PORT
+ARG VITE_ALKITAB_BACKEND_URL
 RUN npm run build
 
 FROM nginx:1.23-alpine
