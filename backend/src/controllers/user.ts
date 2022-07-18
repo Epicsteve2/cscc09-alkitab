@@ -42,6 +42,7 @@ export const logout: RequestHandler = async (req: Request, res: Response, next: 
 
 export const register: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const {username, password } = req.body
+    console.log(req.body);
 
     if (await userExists(username)) 
         return res.status(400).json("Username exists")

@@ -5,6 +5,7 @@ import session from 'express-session';
 import multer from 'multer';
 import socketio from 'socket.io';
 import { Server } from "socket.io";
+import cors from 'cors';
 
 import logging from './middlewares/logging';
 
@@ -16,6 +17,7 @@ import libraryRouter from './routes/library';
 import {ServerToClientEvents,ClientToServerEvents, InterServerEvents, SocketData} from './interfaces/socketio'
 
 import User from './models/user';
+import { truncate } from 'fs';
 
 // const adminUser = new User({
 // 	username: "admin",
@@ -30,24 +32,20 @@ const NAMESPACE: string = 'App';
 const app: express.Application = express();
 
 // CORS
-app.use(function (req, res, next) {
-
-	// Website you wish to allow to connect
-	res.setHeader('Access-Control-Allow-Origin', '*');
-  
-	// Request methods you wish to allow
-	res.setHeader('Access-Control-Allow-Methods', '*');
-  
-	// Request headers you wish to allow
-	res.setHeader('Access-Control-Allow-Headers', '*');
-  
-	// Set to true if you need the website to include cookies in the requests sent
-	// to the API (e.g. in case you use sessions)
-	// res.setHeader('Access-Control-Allow-Credentials', true);
-  
-	// Pass to next layer of middleware
-	next();
-});
+const options: cors.CorsOptions = {
+	allowedHeaders: [
+	  'Origin',
+	  'X-Requested-With',
+	  'Content-Type',
+	  'Accept',
+	  'X-Access-Token',
+	],
+	credentials: true,
+	methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
+	origin: '*',
+	preflightContinue: false,
+};
+app.use(cors(options));
 
 
 
@@ -141,12 +139,12 @@ mongoose
 	.then((r) => logging.info(NAMESPACE, 'Connected to MongoDB Database!'))
 	.catch((error) => logging.error(NAMESPACE, error.message, error));
 
-console.log(config.mongo.options)
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
   console.log("Database connected");
 });
+
 
 // Creating the server
 app.listen(config.server.port, () => {
