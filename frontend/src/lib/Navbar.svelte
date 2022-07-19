@@ -89,9 +89,9 @@
         <NavItem class="px-2">
           <Link to="/test" class="nav-link">Test Page</Link>
         </NavItem>
-        <NavItem class="px-2">
+        <!-- <NavItem class="px-2">
           <Link to="/book" class="nav-link">Book Page</Link>
-        </NavItem>
+        </NavItem> -->
       </Nav>
       <Nav navbar>
         <NavItem class="px-2">

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Home from "./routes/Home.svelte";
+  import Bookshelf from "./routes/Bookshelf.svelte";
   import TestPage from "./routes/TestPage.svelte";
   import Credits from "./routes/Credits.svelte";
   import Login from "./routes/Login.svelte";
@@ -19,12 +19,12 @@
     <AlkitabNavbar />
 
     <Route path="test" component={TestPage} />
-    <Route path="/" component={Home} />
+    <Route path="/" component={Bookshelf} />
     <Route path="/credits" component={Credits} />
     <Route path="/login-signup" component={Login} />
     <Route path="/add-books" component={AddBooks} />
-    <Route path="/library/:bookId" let:params>
-      <Book bookId={params.bookId} />
+    <Route path="/library/:bookId/:pageNumberUrl" let:params>
+      <Book bookId={params.bookId} pageNumberUrl={params.pageNumberUrl} />
     </Route>
     <Route component={NotFound} />
 

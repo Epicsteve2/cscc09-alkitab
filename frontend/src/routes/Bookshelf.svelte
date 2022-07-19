@@ -67,8 +67,9 @@
 </script>
 
 <Container>
-  {#if !$currentUser}
-    <!-- {#if $currentUser} -->
+  <!-- TODO: testing for dev -->
+  {#if false}
+    <!-- {#if !$currentUser} -->
     <h1 class="text-center pt-5">Please log in to see your bookshelf 🔒</h1>
   {:else}
     <h1 class="text-center pt-5">{$currentUser}'s Bookshelf</h1>
@@ -83,7 +84,8 @@
             <b>ID</b>: {book._id} <br />
             <b>Number of pages</b>: {book.numPages} <br />
             <b>Uploaded date</b>: {book.createdAt} <br />
-            <b>Link to book</b>: <Link to={"/library/" + book._id}>Book</Link
+            <b>Link to book</b>: <Link to={"/library/" + book._id + "/1"}
+              >Book</Link
             ><br />
           </li>
         {/each}
