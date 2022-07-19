@@ -5,8 +5,7 @@
   import Login from "./routes/Login.svelte";
   import AddBooks from "./routes/AddBooks.svelte";
   import NotFound from "./routes/NotFound.svelte";
-
-  import Book from "./routes/Book.svelte"
+  import Book from "./routes/Book.svelte";
 
   import AlkitabNavbar from "./lib/Navbar.svelte";
   import Footer from "./lib/Footer.svelte";
@@ -24,8 +23,9 @@
     <Route path="/credits" component={Credits} />
     <Route path="/login-signup" component={Login} />
     <Route path="/add-books" component={AddBooks} />
-
-    <Route path="/book" component={Book}/>
+    <Route path="/library/:bookId" let:params>
+      <Book bookId={params.bookId} />
+    </Route>
     <Route component={NotFound} />
 
     <Footer />

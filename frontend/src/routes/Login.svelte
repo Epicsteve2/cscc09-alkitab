@@ -12,6 +12,8 @@
     currentUser,
   } from "../stores";
 
+  import { navigate } from "svelte-routing";
+
   let username = "";
   let password = "";
 
@@ -38,7 +40,9 @@
 
       currentUser.set(loginResponse.username);
 
-      window.location.replace("/");
+      // window.location.replace("/");
+      navigate("/", { replace: true });
+
       return Promise.resolve("");
     } else {
       let errorMessage: string = await response.text();
@@ -66,7 +70,8 @@
     toastIsOpen = true;
 
     if (response.ok) {
-      window.location.replace("/");
+      // window.location.replace("/");
+      navigate("/", { replace: true });
       return response.json();
     } else {
       let errorMessage: string = await response.text();
@@ -113,12 +118,14 @@
       <button
         class="btn btn-warning "
         type="button"
-        on:click={() => {
+        on:click|preventDefault={() => {
           loginPromise = login(username, password);
         }}>Sign In</button
       >
-      <button class="btn btn-warning " type="button" on:click={handleRegister}
-        >Register</button
+      <button
+        class="btn btn-warning "
+        type="button"
+        on:click|preventDefault={handleRegister}>Register</button
       >
     </div>
   </form>
@@ -134,7 +141,7 @@
       </Toast>
     </div>
   {/await}
-  {#await registerPromise || loginPromise}
+  {#await registerPromise}
     <Spinner size="sm" />
   {:catch error}
     <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">

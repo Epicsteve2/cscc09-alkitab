@@ -1,5 +1,58 @@
 <script lang="ts">
-  import { Container } from "sveltestrap";
+  import {
+    Container,
+    Spinner,
+    Toast,
+    ToastBody,
+    ToastHeader,
+  } from "sveltestrap";
+
+  let fileInput: FileList;
+
+  import {
+    ALKITAB_BACKEND_PORT,
+    ALKITAB_BACKEND_URL,
+    currentUser,
+  } from "../stores";
+
+  import { navigate } from "svelte-routing";
+
+  let sendFilePromise = Promise.resolve("");
+  async function sendFile() {
+    console.log({ fileInput, $currentUser });
+
+    const formData = new FormData();
+    formData.append("username", $currentUser);
+    formData.append("book", fileInput[0]);
+    const response = await self.fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (response.ok) {
+      sendFilePromise = await response.json();
+
+      // window.location.replace("/");
+      navigate("/", { replace: true });
+      return sendFilePromise;
+    } else {
+      let errorMessage: string = await response.text();
+      console.log({ errorMessage });
+      throw new Error(errorMessage);
+    }
+  }
+  let toastIsOpen = true;
+
+  function handleSubmit() {
+    sendFilePromise = sendFile();
+  }
+
+  function toggleToast() {
+    toastIsOpen = !toastIsOpen;
+  }
 </script>
 
 <Container class="pt-5">
@@ -14,9 +67,26 @@
       type="file"
       id="form-add-book"
       accept="application/epub+zip"
+      bind:files={fileInput}
+      required
     />
-    <button class="btn btn-warning mb-3 position-absolute end-0">Submit</button>
+    <button
+      class="btn btn-warning mb-3 position-absolute end-0"
+      on:click|preventDefault={handleSubmit}>Submit</button
+    >
   </form>
+  {#await sendFilePromise}
+    <Spinner size="sm" />
+  {:catch error}
+    <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">
+      <Toast isOpen={toastIsOpen}>
+        <ToastHeader toggle={toggleToast}>Add Book Error</ToastHeader>
+        <ToastBody>
+          <p style="color: red">{error.message}</p>
+        </ToastBody>
+      </Toast>
+    </div>
+  {/await}
 </Container>
 
 <style lang="scss">

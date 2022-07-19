@@ -1,9 +1,34 @@
 <script lang="ts">
   import { Col, Container, Row, Button } from "sveltestrap";
   import { Link } from "svelte-routing";
+
+  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
+
+  async function whoami() {
+    const response = await self.fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (response.ok) {
+      let user = await response.json();
+      console.log({ user });
+    } else {
+      let errorMessage: string = await response.text();
+      console.log({ errorMessage });
+    }
+  }
 </script>
 
 <Container>
+  <Button
+    color="danger"
+    on:click={() => {
+      whoami();
+    }}>Test whoami</Button
+  >
   <Row>
     <Col>.col</Col>
   </Row>

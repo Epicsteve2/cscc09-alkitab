@@ -34,7 +34,7 @@
     isLoggedIn = Boolean(value);
   });
 
-  import { Link } from "svelte-routing";
+  import { Link, navigate } from "svelte-routing";
 
   let isOpen: boolean = false;
 
@@ -56,7 +56,8 @@
     if (response.ok) {
       currentUser.set("");
 
-      window.location.replace("/");
+      // window.location.replace("/");
+      navigate("/", { replace: true });
       return Promise.resolve("");
     } else {
       let errorMessage: string = await response.text();

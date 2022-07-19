@@ -1,137 +1,113 @@
 <script lang="ts">
   import logo from "../assets/svelte.png";
   import Counter from "../lib/Counter.svelte";
+  import { Link } from "svelte-routing";
+  import { onMount } from "svelte";
+  import { currentUser } from "../stores";
 
   import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
 
   // Bootstrap testing
-  import { Button, Modal } from "sveltestrap";
-  let isOpen: boolean = false;
-  const toggle: () => void = () => (isOpen = !isOpen);
+  import {
+    Button,
+    Modal,
+    Container,
+    Spinner,
+    Toast,
+    ToastBody,
+    ToastHeader,
+  } from "sveltestrap";
 
-  async function whoami() {
+  let getBooksPromise = getBooks();
+
+  onMount(() => {
+    console.log({ $currentUser });
+  });
+
+  async function getBooks(): Promise<Object[]> {
     const response = await self.fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
-      {
-        method: "GET",
-      }
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
+      { method: "GET" }
     );
 
     if (response.ok) {
-      let user = await response.json();
-      console.log({ user });
+      let bookList = await response.json();
+      console.log({ bookList });
+      return bookList;
     } else {
       let errorMessage: string = await response.text();
       console.log({ errorMessage });
+      throw new Error(errorMessage);
     }
   }
+
+  let toastIsOpen = true;
+
+  function toggleToast() {
+    toastIsOpen = !toastIsOpen;
+  }
+
+  interface BookList {
+    _id: string;
+    user: string;
+    sharedUsers: any[];
+    bookPost: string;
+    title: string;
+    numPages: number;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  }
+
+  const hardCodedBookList: BookList[] = [
+    {
+      _id: "62d49d8861ec7f391e7a0bec",
+      user: "Mashiro",
+      sharedUsers: [],
+      bookPost: "Mock",
+      title: "Around the World in 28 Languages",
+      numPages: 547,
+      createdAt: "2022-07-17T23:38:50.088Z",
+      updatedAt: "2022-07-17T23:38:50.088Z",
+      __v: 0,
+    },
+  ];
 </script>
 
-<main>
-  <img src={logo} alt="Svelte Logo" />
-  <h1>Hello Typescript!</h1>
-
-  <Counter />
-
-  <p>
-    Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
-    apps.
-  </p>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme">SvelteKit</a> for
-    the officially supported framework, also powered by Vite!
-  </p>
-
-  <!-- Bootstrap testing -->
-  <div>
-    <p>Testing bootstrap button</p>
-    <button type="button" class="btn btn-primary">Primary</button>
-  </div>
-  <br />
-
-  <Button color="primary" on:click={toggle}
-    >This opens up a modal (Idk what that is lol)</Button
-  >
-  <Button
-    color="danger"
-    on:click={() => {
-      whoami();
-    }}>Test whoami</Button
-  >
-  <Modal body {isOpen} {toggle} header="Hello World!">
-    <p>There's a song that we're singing. Come on</p>
-    <img
-      src="https://i.ytimg.com/vi/NUJIRujygvY/hqdefault.jpg"
-      alt="Come on Get Happy"
-      class="img-fluid"
-    />
-  </Modal>
-</main>
+<Container>
+  {#if !$currentUser}
+    <!-- {#if $currentUser} -->
+    <h1 class="text-center pt-5">Please log in to see your bookshelf 🔒</h1>
+  {:else}
+    <h1 class="text-center pt-5">{$currentUser}'s Bookshelf</h1>
+    {#await getBooksPromise}
+      <h3>Loading books... <Spinner /></h3>
+    {:then bookList}
+      <ul>
+        <!-- {#each bookList as book} -->
+        {#each hardCodedBookList as book}
+          <li>
+            <b>Title</b>: {book.title} <br />
+            <b>ID</b>: {book._id} <br />
+            <b>Number of pages</b>: {book.numPages} <br />
+            <b>Uploaded date</b>: {book.createdAt} <br />
+            <b>Link to book</b>: <Link to={"/library/" + book._id}>Book</Link
+            ><br />
+          </li>
+        {/each}
+      </ul>
+    {:catch error}
+      <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">
+        <Toast isOpen={toastIsOpen}>
+          <ToastHeader toggle={toggleToast}>Register Error</ToastHeader>
+          <ToastBody>
+            <p style="color: red">{error.message}</p>
+          </ToastBody>
+        </Toast>
+      </div>
+    {/await}
+  {/if}
+</Container>
 
 <style lang="scss">
-  :root {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  }
-
-  main {
-    text-align: center;
-    padding: 1em;
-    margin: 0 auto;
-  }
-
-  img {
-    height: 16rem;
-    width: 16rem;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4rem;
-    font-weight: 100;
-    line-height: 1.1;
-    margin: 2rem auto;
-    max-width: 14rem;
-  }
-
-  p {
-    max-width: 14rem;
-    margin: 1rem auto;
-    line-height: 1.35;
-  }
-
-  @media (min-width: 480px) {
-    h1 {
-      max-width: none;
-    }
-
-    p {
-      max-width: none;
-    }
-  }
-
-  // Testing SCSS
-  @mixin button-base() {
-    @include typography(button);
-    @include ripple-surface;
-    @include ripple-radius-bounded;
-
-    display: inline-flex;
-    position: relative;
-    height: $button-height;
-    border: none;
-    vertical-align: middle;
-
-    &:hover {
-      cursor: pointer;
-    }
-
-    &:disabled {
-      color: $mdc-button-disabled-ink-color;
-      cursor: default;
-      pointer-events: none;
-    }
-  }
 </style>
