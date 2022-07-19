@@ -1,14 +1,8 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   export let bookId: string;
 
-  import {
-    ALKITAB_BACKEND_PORT,
-    ALKITAB_BACKEND_URL,
-    currentUser,
-  } from "../stores";
+  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
 
-  // const bookId = "62d49d8861ec7f391e7a0bec";
   let pageNumber = 1;
 
   let promise = getBook(bookId);

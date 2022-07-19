@@ -7,9 +7,7 @@
   async function whoami() {
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
-      {
-        method: "GET",
-      }
+      { method: "GET" }
     );
 
     if (response.ok) {
@@ -20,16 +18,41 @@
       console.log({ errorMessage });
     }
   }
+
+  async function getBooks() {
+    const response = await self.fetch(
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
+      { method: "GET" }
+    );
+
+    if (response.ok) {
+      let bookList = await response.json();
+      console.log({ bookList });
+    } else {
+      let errorMessage: string = await response.text();
+      console.log({ errorMessage });
+      throw new Error(errorMessage);
+    }
+  }
 </script>
 
 <Container>
+  <h1 class="mt-3">Test page for console logging API output</h1>
   <Button
     color="danger"
+    class="mt-3"
     on:click={() => {
       whoami();
     }}>Test whoami</Button
   >
-  <Row>
+  <Button
+    color="warning"
+    class="mt-3"
+    on:click={() => {
+      getBooks();
+    }}>Test get books</Button
+  >
+  <!-- <Row>
     <Col>.col</Col>
   </Row>
   <Row>
@@ -99,10 +122,10 @@
         Some quick example text to build on the card title and make up the bulk
         of the card's content.
       </p>
-      <!-- Using non-sveltestrap components -->
+      <!-- Using non-sveltestrap components ->
       <Link to="/" class="btn btn-secondary">Go home</Link>
     </div>
-  </div>
+  </div> -->
 </Container>
 
 <!-- Syntax highlighting doesn't work D:

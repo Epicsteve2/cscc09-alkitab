@@ -6,6 +6,7 @@
     ToastHeader,
     Spinner,
   } from "sveltestrap";
+
   import {
     ALKITAB_BACKEND_PORT,
     ALKITAB_BACKEND_URL,
@@ -23,9 +24,7 @@
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/login`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: username,
           password: password,

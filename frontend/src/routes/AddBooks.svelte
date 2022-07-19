@@ -19,11 +19,10 @@
 
   let sendFilePromise = Promise.resolve("");
   async function sendFile() {
-    console.log({ fileInput, $currentUser });
-
     const formData = new FormData();
     formData.append("username", $currentUser);
     formData.append("book", fileInput[0]);
+
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book`,
       {

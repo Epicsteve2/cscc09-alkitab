@@ -1,16 +1,7 @@
 <script lang="ts">
-  import logo from "../assets/svelte.png";
-  import Counter from "../lib/Counter.svelte";
   import { Link } from "svelte-routing";
-  import { onMount } from "svelte";
-  import { currentUser } from "../stores";
 
-  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
-
-  // Bootstrap testing
   import {
-    Button,
-    Modal,
     Container,
     Spinner,
     Toast,
@@ -18,11 +9,13 @@
     ToastHeader,
   } from "sveltestrap";
 
-  let getBooksPromise = getBooks();
+  import {
+    currentUser,
+    ALKITAB_BACKEND_PORT,
+    ALKITAB_BACKEND_URL,
+  } from "../stores";
 
-  onMount(() => {
-    console.log({ $currentUser });
-  });
+  let getBooksPromise = getBooks();
 
   async function getBooks(): Promise<Object[]> {
     const response = await self.fetch(
@@ -32,7 +25,6 @@
 
     if (response.ok) {
       let bookList = await response.json();
-      console.log({ bookList });
       return bookList;
     } else {
       let errorMessage: string = await response.text();
@@ -59,7 +51,7 @@
     __v: number;
   }
 
-  const hardCodedBookList: BookList[] = [
+  const hardcodedBookList: BookList[] = [
     {
       _id: "62d49d8861ec7f391e7a0bec",
       user: "Mashiro",
@@ -85,7 +77,7 @@
     {:then bookList}
       <ul>
         <!-- {#each bookList as book} -->
-        {#each hardCodedBookList as book}
+        {#each hardcodedBookList as book}
           <li>
             <b>Title</b>: {book.title} <br />
             <b>ID</b>: {book._id} <br />
