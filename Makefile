@@ -41,7 +41,8 @@ exists/env/%:
 ## Runs frontend with CORS proxy port
 frontend/dev: | exists/cmd/npm
 	@echo "$(GREEN)Running alkitab-frontend locally...$(RESETCOLOR)"
-	cd frontend/ && npm run dev
+	cd frontend/ && \
+	VITE_ALKITAB_BACKEND_PORT=8010 npm run dev
 
 .PHONY: nginx/sh
 ## sh into running nginx container

@@ -68,8 +68,8 @@
 
 <Container>
   <!-- TODO: testing for dev -->
-  {#if false}
-    <!-- {#if !$currentUser} -->
+  <!-- {#if false} -->
+  {#if !$currentUser}
     <h1 class="text-center pt-5">Please log in to see your bookshelf 🔒</h1>
   {:else}
     <h1 class="text-center pt-5">{$currentUser}'s Bookshelf</h1>

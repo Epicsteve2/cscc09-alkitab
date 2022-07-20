@@ -68,8 +68,12 @@
 
     if (response.ok) {
       // window.location.replace("/");
+      let registerResponse = await response.json();
+
+      currentUser.set(registerResponse.username);
+
       navigate("/", { replace: true });
-      return response.json();
+      return registerResponse;
     } else {
       let errorMessage: string = await response.text();
       throw new Error(errorMessage);
