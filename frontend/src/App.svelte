@@ -1,12 +1,11 @@
 <script lang="ts">
-  import Home from "./routes/Home.svelte";
+  import Bookshelf from "./routes/Bookshelf.svelte";
   import TestPage from "./routes/TestPage.svelte";
   import Credits from "./routes/Credits.svelte";
   import Login from "./routes/Login.svelte";
   import AddBooks from "./routes/AddBooks.svelte";
   import NotFound from "./routes/NotFound.svelte";
-
-  import Book from "./routes/Book.svelte"
+  import Book from "./routes/Book.svelte";
 
   import AlkitabNavbar from "./lib/Navbar.svelte";
   import Footer from "./lib/Footer.svelte";
@@ -20,12 +19,13 @@
     <AlkitabNavbar />
 
     <Route path="test" component={TestPage} />
-    <Route path="/" component={Home} />
+    <Route path="/" component={Bookshelf} />
     <Route path="/credits" component={Credits} />
     <Route path="/login-signup" component={Login} />
     <Route path="/add-books" component={AddBooks} />
-
-    <Route path="/book" component={Book}/>
+    <Route path="/library/:bookId/:pageNumberUrl" let:params>
+      <Book bookId={params.bookId} pageNumberUrl={params.pageNumberUrl} />
+    </Route>
     <Route component={NotFound} />
 
     <Footer />

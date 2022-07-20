@@ -3,21 +3,23 @@ services:
   mongodb:
     container_name: alkitab-mongodb
     image: mongo:5.0.9-focal
-    restart: always
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
       MONGO_INITDB_DATABASE: books
-    # TODO: Change to expose for production
-    ports:
-      - 27017:27017
+    expose:
+      - 27017
     networks:
       - alkitab
+    volumes:
+      - mongo-data:/data/db
 
   alkitab-backend:
     container_name: alkitab-backend
     build:
       context: ./backend
+    restart: unless-stopped
     depends_on:
       - mongodb
     environment:
@@ -26,14 +28,15 @@ services:
       MONGO_PORT: 27017
       USERNAME: root
       PASS: 123456
+      PORT: 3000
     networks:
       - alkitab
-    # TODO: Change to expose for production
-    ports:
-      - 3000:3000
+    expose:
+      - 3000
 
   alkitab-frontend:
     container_name: alkitab-frontend
+    restart: unless-stopped
     build:
       context: ./frontend
       args:
@@ -48,20 +51,42 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
 
-  # Testing for developing
-  cors-proxy:
-    container_name: alkitab-cors-proxy
-    image: nginx:1.23-alpine
+  alkitab-mongo-express:
+    image: mongo-express:1.0.0-alpha.4
+    container_name: alkitab-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_SERVER: alkitab-mongodb
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+      ME_CONFIG_MONGODB_AUTH_USERNAME: root
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: 123456
+      ME_CONFIG_SITE_BASEURL: /mongoadmin
     depends_on:
-      - alkitab-backend
+      - mongodb
+    expose:
+      - 8081
     networks:
       - alkitab
-    volumes:
-      - ./nginx/cors-proxy.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - 8010:80
     profiles:
       - develop
 
+  alkitab-portainer:
+    image: portainer/portainer-ce:2.14.1-alpine
+    container_name: alkitab-portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+    environment:
+      - VIRTUAL_HOST=/portainer
+    networks:
+      - alkitab
+    expose:
+      - 9000
+
 networks:
   alkitab:
+
+volumes:
+  portainer-data:
+  mongo-data:

@@ -58,7 +58,7 @@ frontend/build: | exists/cmd/docker
 frontend/run: | exists/cmd/npm
 	@echo "$(GREEN)Running alkitab-frontend locally...$(RESETCOLOR)"
 	cd frontend/ && \
-	VITE_ALKITAB_BACKEND_PORT=8010 npm run dev -- --port 3001
+	VITE_ALKITAB_BACKEND_PORT=8080 npm run dev
 
 .PHONY: nginx/run
 ## Runs nginx docker image with frontend static files
@@ -85,7 +85,7 @@ nginx/sh: | exists/cmd/docker
 	docker exec \
 		--interactive \
 		--tty \
-		"$$(docker ps --quiet --filter ancestor='alkitab-frontend')" \
+		alkitab-frontend \
 		sh
 
 .PHONY: backend/docker-compose
