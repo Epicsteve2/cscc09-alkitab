@@ -31,22 +31,39 @@ import { truncate } from 'fs';
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
 
-// CORS
-const options: cors.CorsOptions = {
-	allowedHeaders: [
-	  'Origin',
-	  'X-Requested-With',
-	  'Content-Type',
-	  'Accept',
-	  'X-Access-Token',
-	],
-	credentials: true,
-	methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
-	origin: '*',
-	preflightContinue: false,
-};
-app.use(cors(options));
+// Session
+declare module 'express-session' {
+	export interface SessionData {
+	  user: string;
+	}
+  }
 
+app.use(
+	session({
+	  secret: "please change this secret",
+	  resave: false,
+	  saveUninitialized: true,
+	})
+);
+
+// CORS
+// const options: cors.CorsOptions = {
+// 	allowedHeaders: [
+// 	  'Origin',
+// 	  'X-Requested-With',
+// 	  'Content-Type',
+// 	  'Accept',
+// 	  'X-Access-Token',
+// 	],
+// 	credentials: true,
+// 	methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
+// 	origin: '*',
+// 	preflightContinue: false,
+// };
+
+
+// app.use(cors());
+// app.options('*', cors)
 
 
 // Logging
@@ -65,20 +82,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// Session
-declare module 'express-session' {
-	export interface SessionData {
-	  user: string;
-	}
-  }
 
-app.use(
-	session({
-	  secret: "please change this secret",
-	  resave: false,
-	  saveUninitialized: true,
-	})
-);
 
 
 const upload = multer({ dest: 'uploads/' });
