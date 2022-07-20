@@ -55,18 +55,27 @@
       action
       tag="a"
       >NGINX setup for mongo-express. Also check out <a
-        href="https://github.com/mongo-express/mongo-express/issues/146#issuecomment-329531989"
+        href="https://stackoverflow.com/a/45408398"
         >Firefox issue redirecting <code>localhost</code> to
         <code>https</code></a
       >
     </ListGroupItem>
-    <!-- <ListGroupItem
+    <ListGroupItem
+      color="warning"
+      href="https://github.com/portainer/portainer/issues/4429#issuecomment-731652600"
+      action
+      tag="a"
+      >NGINX setup for portainer.
+    </ListGroupItem>
+    <!--
+    <ListGroupItem
       color="warning"
       href=""
       action
       tag="a"
       >
-    </ListGroupItem> -->
+    </ListGroupItem>
+    -->
   </ListGroup>
 </Container>
 
