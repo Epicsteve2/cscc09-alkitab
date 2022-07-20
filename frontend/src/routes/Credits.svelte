@@ -67,6 +67,13 @@
       tag="a"
       >NGINX setup for portainer.
     </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://gist.github.com/Stanback/7145487"
+      action
+      tag="a"
+      >CORS issues #2. Fix with NGINX
+    </ListGroupItem>
     <!--
     <ListGroupItem
       color="warning"

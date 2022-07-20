@@ -14,6 +14,7 @@ services:
       - alkitab
     volumes:
       - mongo-data:/data/db
+      - mongo-config:/data/configdb
 
   alkitab-backend:
     container_name: alkitab-backend
@@ -67,24 +68,24 @@ services:
       - 8081
     networks:
       - alkitab
-    profiles:
-      - develop
 
   alkitab-portainer:
     image: portainer/portainer-ce:2.14.1-alpine
     container_name: alkitab-portainer
+    command: -H unix:///var/run/docker.sock
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer-data:/data
     environment:
-      - VIRTUAL_HOST=/portainer
+      VIRTUAL_HOST: /portainer
+      VIRTUAL_PORT: 9000
     networks:
       - alkitab
     expose:
       - 9000
 
-  cors-proxy:
+  alkitab-cors-proxy:
     container_name: alkitab-cors-proxy
     image: nginx:1.23-alpine
     depends_on:
@@ -104,3 +105,4 @@ networks:
 volumes:
   portainer-data:
   mongo-data:
+  mongo-config:
