@@ -4,8 +4,8 @@ import mongoose from 'mongoose';
 import session from 'express-session';
 import multer from 'multer';
 import socketio from 'socket.io';
-import { Server } from "socket.io";
-import cors from 'cors';
+import { Server } from 'socket.io';
+// import cors from 'cors';
 
 import logging from './middlewares/logging';
 
@@ -14,7 +14,7 @@ import config from './config/general';
 import userRouter from './routes/user';
 import libraryRouter from './routes/library';
 
-import {ServerToClientEvents,ClientToServerEvents, InterServerEvents, SocketData} from './interfaces/socketio'
+import { ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData } from './interfaces/socketio';
 
 import User from './models/user';
 import { truncate } from 'fs';
@@ -25,24 +25,21 @@ import { truncate } from 'fs';
 // })
 // adminUser.save()
 
-
-
-
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
 
 // Session
 declare module 'express-session' {
 	export interface SessionData {
-	  user: string;
+		user: string;
 	}
-  }
+}
 
 app.use(
 	session({
-	  secret: "please change this secret",
-	  resave: false,
-	  saveUninitialized: true,
+		secret: 'please change this secret',
+		resave: false,
+		saveUninitialized: true
 	})
 );
 
@@ -61,10 +58,8 @@ app.use(
 // 	preflightContinue: false,
 // };
 
-
 // app.use(cors());
 // app.options('*', cors)
-
 
 // Logging
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -82,19 +77,15 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
-
-
 const upload = multer({ dest: 'uploads/' });
-
 
 // Sockets
 const usersInBookRoom = new Map();
 const bookRoomOfUser = new Map();
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>();
-io.on("connection", (socket) => {
-	console.log("connected");
+io.on('connection', (socket) => {
+	console.log('connected');
 
 	// socket.emit("noArg");
 	// socket.emit("basicEmit", 1, "2", Buffer.from([3]));
@@ -110,26 +101,21 @@ io.on("connection", (socket) => {
 	// 	// 	usersInBookRoom.set(bookRoomId, [socket.id])
 	// 	// }
 	// 	// bookRoomOfUser.set(socket.id, bookRoomId);
-		
+
 	// 	// socket.emit("all users", "ljdsak")
 	// 	// ...
 	// });
 
-	
-  
 	// works when broadcast to all
 	// io.emit("noArg");
-  
+
 	// works when broadcasting to a room
-
 });
-
-
 
 // API Routes
 app.use('/api/users', userRouter);
-app.use('/api/library/', libraryRouter)
-app.use('/api/bookpost/', libraryRouter)
+app.use('/api/library/', libraryRouter);
+app.use('/api/bookpost/', libraryRouter);
 
 // Error Handling
 app.use((req, res, next) => {
@@ -144,11 +130,10 @@ mongoose
 	.catch((error) => logging.error(NAMESPACE, error.message, error));
 
 const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
-  console.log("Database connected");
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', () => {
+	console.log('Database connected');
 });
-
 
 // Creating the server
 app.listen(config.server.port, () => {

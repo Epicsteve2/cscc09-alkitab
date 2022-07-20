@@ -17,14 +17,14 @@
 
   let getBooksPromise = getBooks();
 
-  async function getBooks(): Promise<Object[]> {
+  async function getBooks(): Promise<BookList[]> {
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
       { method: "GET" }
     );
 
     if (response.ok) {
-      let bookList = await response.json();
+      let bookList: BookList[] = await response.json();
       return bookList;
     } else {
       let errorMessage: string = await response.text();
@@ -77,8 +77,8 @@
       <h3>Loading books... <Spinner /></h3>
     {:then bookList}
       <ul>
-        <!-- {#each bookList as book} -->
-        {#each hardcodedBookList as book}
+        {#each bookList as book}
+          <!-- {#each hardcodedBookList as book} -->
           <li>
             <b>Title</b>: {book.title} <br />
             <b>ID</b>: {book._id} <br />

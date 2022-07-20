@@ -84,6 +84,20 @@ services:
     expose:
       - 9000
 
+  cors-proxy:
+    container_name: alkitab-cors-proxy
+    image: nginx:1.23-alpine
+    depends_on:
+      - alkitab-backend
+    networks:
+      - alkitab
+    volumes:
+      - ./nginx/cors-proxy.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8010:80
+    profiles:
+      - develop
+
 networks:
   alkitab:
 

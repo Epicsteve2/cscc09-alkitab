@@ -58,7 +58,7 @@ frontend/build: | exists/cmd/docker
 frontend/run: | exists/cmd/npm
 	@echo "$(GREEN)Running alkitab-frontend locally...$(RESETCOLOR)"
 	cd frontend/ && \
-	VITE_ALKITAB_BACKEND_PORT=8080 npm run dev
+	VITE_ALKITAB_BACKEND_PORT=8010 npm run dev
 
 .PHONY: nginx/run
 ## Runs nginx docker image with frontend static files
