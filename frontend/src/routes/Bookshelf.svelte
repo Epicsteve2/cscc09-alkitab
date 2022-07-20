@@ -20,7 +20,7 @@
   async function getBooks(): Promise<BookList[]> {
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
-      { method: "GET" }
+      { method: "GET", credentials: "include" }
     );
 
     if (response.ok) {

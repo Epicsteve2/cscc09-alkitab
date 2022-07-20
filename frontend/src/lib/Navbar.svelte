@@ -24,7 +24,8 @@
 
   onMount(async () => {
     const whoamiResponse = await fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`
+      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
+      { credentials: "include" }
     );
     let getCurrentUser = await whoamiResponse.json();
     currentUser.set(getCurrentUser.user || "");
@@ -48,7 +49,7 @@
   async function logout(): Promise<Object> {
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/logout`,
-      { method: "GET" }
+      { method: "GET", credentials: "include" }
     );
 
     toastIsOpen = true;

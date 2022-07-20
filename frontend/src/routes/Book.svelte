@@ -19,7 +19,7 @@
     );
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
-      { method: "GET" }
+      { method: "GET", credentials: "include" }
     );
     if (response.ok) {
       const body = await response.json();

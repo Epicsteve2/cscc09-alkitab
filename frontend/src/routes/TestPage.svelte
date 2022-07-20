@@ -7,7 +7,10 @@
   async function whoami() {
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
-      { method: "GET", credentials: "include" }
+      {
+        method: "GET",
+        credentials: "include",
+      }
     );
 
     if (response.ok) {
@@ -22,7 +25,10 @@
   async function getBooks() {
     const response = await self.fetch(
       `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
-      { method: "GET", credentials: "include" }
+      {
+        method: "GET",
+        credentials: "include",
+      }
     );
 
     if (response.ok) {
