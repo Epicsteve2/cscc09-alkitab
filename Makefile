@@ -84,7 +84,7 @@ nginx/sh: | exists/cmd/docker
 	docker exec \
 		--interactive \
 		--tty \
-		"$$(docker ps --quiet --filter ancestor='alkitab-frontend')" \
+		alkitab-frontend \
 		sh
 
 .PHONY: backend/docker-compose
