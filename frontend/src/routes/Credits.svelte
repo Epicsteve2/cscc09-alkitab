@@ -46,16 +46,15 @@
       href="https://stackoverflow.com/a/58078233"
       action
       tag="a"
-      >CORS issues for local development
+      >CORS issues #1. Local development
     </ListGroupItem>
-
     <ListGroupItem
       color="warning"
       href="https://github.com/mongo-express/mongo-express/issues/146#issuecomment-329531989"
       action
       tag="a"
-      >NGINX setup for mongo-express. Also check out <a
-        href="https://stackoverflow.com/a/45408398"
+      >NGINX setup for mongo-express. <br />Also check out
+      <a href="https://stackoverflow.com/a/45408398"
         >Firefox issue redirecting <code>localhost</code> to
         <code>https</code></a
       >
@@ -78,14 +77,18 @@
       color="warning"
       href="https://serverfault.com/a/1095428"
       action
-      tag="a">CORS issues #3. Remove secure cookies for dev only</ListGroupItem
+      tag="a"
+      >CORS issues #3. Remove secure cookies for dev only<br /><b>EDIT</b>: I
+      didn't actually need this in the end</ListGroupItem
     >
     <ListGroupItem
       color="warning"
       href="https://github.com/github/fetch/issues/386#issuecomment-243229388"
       action
       tag="a"
-      >CORS issues #4. Forgot to set <code>credentials</code>
+      >CORS issues #4. Forgot to set <code>credentials</code>. <br />
+      Apparently, you need to set <code>credentials</code> to also be able to return
+      cookies from the backend as well... 😡
     </ListGroupItem>
     <!--
     <ListGroupItem

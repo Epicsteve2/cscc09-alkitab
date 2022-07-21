@@ -42,7 +42,7 @@ exists/env/%:
 frontend/dev: | exists/cmd/npm
 	@echo "$(GREEN)Running alkitab-frontend locally...$(RESETCOLOR)"
 	cd frontend/ && \
-	VITE_ALKITAB_BACKEND_PORT=8010 npm run dev
+	npm run dev
 
 .PHONY: nginx/sh
 ## sh into running nginx container
@@ -58,15 +58,6 @@ nginx/sh: | exists/cmd/docker
 		--tty \
 		alkitab-frontend \
 		sh
-
-.PHONY: docker-compose/dev
-## Brings up only the frontend, mongodb, and express server using docker-compoes
-docker-compose/dev: | exists/cmd/docker-compose
-	@echo "$(GREEN)Bringing up mongodb and express server...$(RESETCOLOR)"
-	docker-compose up \
-		--build \
-		--remove-orphans \
-		alkitab-frontend alkitab-backend mongodb
 
 .PHONY: docker-compose
 ## Brings up all containers for development
