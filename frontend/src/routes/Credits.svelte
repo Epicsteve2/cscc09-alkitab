@@ -74,6 +74,19 @@
       tag="a"
       >CORS issues #2. Fix with NGINX
     </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://serverfault.com/a/1095428"
+      action
+      tag="a">CORS issues #3. Remove secure cookies for dev only</ListGroupItem
+    >
+    <ListGroupItem
+      color="warning"
+      href="https://github.com/github/fetch/issues/386#issuecomment-243229388"
+      action
+      tag="a"
+      >CORS issues #4. Forgot to set <code>credentials</code>
+    </ListGroupItem>
     <!--
     <ListGroupItem
       color="warning"

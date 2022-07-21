@@ -29,6 +29,7 @@
           username: username,
           password: password,
         }),
+        credentials: "include",
       }
     );
 
@@ -61,6 +62,7 @@
           username: username,
           password: password,
         }),
+        credentials: "include",
       }
     );
 
