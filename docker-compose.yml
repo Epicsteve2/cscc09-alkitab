@@ -84,8 +84,6 @@ services:
       - alkitab
     expose:
       - 9000
-    profiles:
-      - production
 
   alkitab-cors-proxy:
     container_name: alkitab-cors-proxy
