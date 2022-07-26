@@ -1,14 +1,14 @@
 <script lang="ts">
   import { Navbar, Nav } from "sveltestrap/src";
-  import { Link } from "svelte-routing";
+  import { links } from "svelte-routing";
 </script>
 
 <footer class="mt-auto">
   <Navbar color="warning">
     <Nav class="mx-auto">
-      <Link to="credits" class="px-3 nav-link">Credits</Link>
+      <a href="/credits" class="px-3 nav-link footer-link" use:links>Credits</a>
       <a
-        class="px-3 nav-link"
+        class="px-3 nav-link footer-link"
         href="https://github.com/UTSCC09/project-we-use-linux-btw">GitHub</a
       >
     </Nav>
@@ -16,4 +16,7 @@
 </footer>
 
 <style lang="scss">
+  .footer-link {
+    color: orangered;
+  }
 </style>

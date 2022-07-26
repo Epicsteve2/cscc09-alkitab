@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
   import { Container, Spinner } from "sveltestrap";
-  import { currentUser } from "../stores";
 
+  import { currentUser } from "../stores";
   import { getBooks } from "../api-service";
 
   let getBooksPromise = getBooks();

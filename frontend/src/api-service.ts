@@ -65,6 +65,31 @@ export async function login(
   }
 }
 
+export async function sendEpubFile(username: string, epubFile: File) {
+  const formData = new FormData();
+  formData.append("username", username);
+  formData.append("book", epubFile);
+
+  const response = await self.fetch(
+    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book`,
+    {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    }
+  );
+
+  if (response.ok) {
+    let sendFileResponse = await response.json();
+    navigate("/", { replace: true });
+    return sendFileResponse;
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("Send book error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
 interface BookList {
   _id: string;
   user: string;
@@ -109,6 +134,42 @@ export async function getBook(
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Getting book error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function logout(): Promise<Object> {
+  const response = await self.fetch(
+    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/logout`,
+    { method: "GET", credentials: "include" }
+  );
+
+  if (response.ok) {
+    let logoutResponse = await response.json();
+    currentUser.set("");
+    navigate("/", { replace: true });
+    return logoutResponse;
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("Logout error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function whoami(): Promise<Object> {
+  const response = await fetch(
+    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
+    { credentials: "include" }
+  );
+
+  if (response.ok) {
+    let getCurrentUser = await response.json();
+    currentUser.set(getCurrentUser.user || "");
+    navigate("/", { replace: true });
+    return getCurrentUser;
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("whoami error", errorMessage);
     throw new Error(errorMessage);
   }
 }

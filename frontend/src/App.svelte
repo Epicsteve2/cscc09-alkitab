@@ -15,10 +15,10 @@
   export let url = "";
 </script>
 
-<Notifications />
 <Router {url}>
   <div class="fluid-container d-flex flex-column min-vh-100">
     <AlkitabNavbar />
+    <Notifications />
 
     <Route path="test" component={TestPage} />
     <Route path="/" component={Bookshelf} />

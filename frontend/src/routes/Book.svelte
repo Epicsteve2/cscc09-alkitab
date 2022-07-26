@@ -1,11 +1,11 @@
 <script lang="ts">
   export let bookId: string;
   export let pageNumberUrl: string;
-  let pageNumber = parseInt(pageNumberUrl);
 
   import { Spinner } from "sveltestrap";
   import { getBook } from "../api-service";
 
+  let pageNumber = parseInt(pageNumberUrl);
   let getBookPromise = getBook(bookId, pageNumber);
 
   async function getNextPage(): Promise<void> {

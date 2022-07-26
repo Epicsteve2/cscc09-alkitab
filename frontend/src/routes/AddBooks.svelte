@@ -1,58 +1,11 @@
 <script lang="ts">
-  import {
-    Container,
-    Spinner,
-    Toast,
-    ToastBody,
-    ToastHeader,
-  } from "sveltestrap";
+  import { Container, Spinner } from "sveltestrap";
+
+  import { currentUser } from "../stores";
+  import { sendEpubFile } from "../api-service";
 
   let fileInput: FileList;
-
-  import {
-    ALKITAB_BACKEND_PORT,
-    ALKITAB_BACKEND_URL,
-    currentUser,
-  } from "../stores";
-
-  import { navigate } from "svelte-routing";
-
-  let sendFilePromise = Promise.resolve("");
-  async function sendFile() {
-    const formData = new FormData();
-    formData.append("username", $currentUser);
-    formData.append("book", fileInput[0]);
-
-    const response = await self.fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book`,
-      {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      }
-    );
-
-    if (response.ok) {
-      sendFilePromise = await response.json();
-
-      // window.location.replace("/");
-      navigate("/", { replace: true });
-      return sendFilePromise;
-    } else {
-      let errorMessage: string = await response.text();
-      console.log({ errorMessage });
-      throw new Error(errorMessage);
-    }
-  }
-  let toastIsOpen = true;
-
-  function handleSubmit() {
-    sendFilePromise = sendFile();
-  }
-
-  function toggleToast() {
-    toastIsOpen = !toastIsOpen;
-  }
+  let sendFilePromise: Promise<Object> = Promise.resolve("");
 </script>
 
 <Container class="pt-5">
@@ -72,21 +25,14 @@
     />
     <button
       class="btn btn-warning mb-3 position-absolute end-0"
-      on:click|preventDefault={handleSubmit}>Submit</button
+      on:click|preventDefault={() => {
+        sendFilePromise = sendEpubFile($currentUser, fileInput[0]);
+      }}>Submit</button
     >
+    {#await sendFilePromise}
+      <Spinner size="sm" />
+    {/await}
   </form>
-  {#await sendFilePromise}
-    <Spinner size="sm" />
-  {:catch error}
-    <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">
-      <Toast isOpen={toastIsOpen}>
-        <ToastHeader toggle={toggleToast}>Add Book Error</ToastHeader>
-        <ToastBody>
-          <p style="color: red">{error.message}</p>
-        </ToastBody>
-      </Toast>
-    </div>
-  {/await}
 </Container>
 
 <style lang="scss">

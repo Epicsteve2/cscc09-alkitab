@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-
   import {
     Collapse,
     Navbar,
@@ -8,68 +7,24 @@
     NavbarBrand,
     Nav,
     NavItem,
-    Toast,
-    ToastBody,
-    ToastHeader,
     Spinner,
   } from "sveltestrap/src";
+  import { Link } from "svelte-routing";
 
-  import {
-    ALKITAB_BACKEND_URL,
-    ALKITAB_BACKEND_PORT,
-    currentUser,
-  } from "../stores";
-
-  let isLoggedIn: boolean;
+  import { logout, whoami } from "../api-service";
+  import { currentUser } from "../stores";
 
   onMount(async () => {
-    const whoamiResponse = await fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
-      { credentials: "include" }
-    );
-    let getCurrentUser = await whoamiResponse.json();
-    currentUser.set(getCurrentUser.user || "");
+    whoami();
   });
 
-  currentUser.subscribe((value) => {
-    isLoggedIn = Boolean(value);
-  });
-
-  import { Link, navigate } from "svelte-routing";
-
-  let isOpen: boolean = false;
+  let isOpen = false;
 
   function handleUpdate(event) {
     isOpen = event.detail.isOpen;
   }
 
-  let toastIsOpen = false;
-
   let logoutPromise: Promise<Object> = Promise.resolve("");
-  async function logout(): Promise<Object> {
-    const response = await self.fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/logout`,
-      { method: "GET", credentials: "include" }
-    );
-
-    toastIsOpen = true;
-
-    if (response.ok) {
-      currentUser.set("");
-
-      // window.location.replace("/");
-      navigate("/", { replace: true });
-      return Promise.resolve("");
-    } else {
-      let errorMessage: string = await response.text();
-      console.log({ errorMessage });
-      throw new Error(errorMessage);
-    }
-  }
-
-  function toggleToast() {
-    toastIsOpen = !toastIsOpen;
-  }
 </script>
 
 <header>
@@ -90,13 +45,10 @@
         <NavItem class="px-2">
           <Link to="/test" class="nav-link">Test Page</Link>
         </NavItem>
-        <!-- <NavItem class="px-2">
-          <Link to="/book" class="nav-link">Book Page</Link>
-        </NavItem> -->
       </Nav>
       <Nav navbar>
         <NavItem class="px-2">
-          {#if !isLoggedIn}
+          {#if $currentUser.length === 0}
             <Link to="/login-signup" class="nav-link">Login/Signup</Link>
           {:else}
             <div
@@ -110,19 +62,10 @@
         </NavItem>
       </Nav>
     </Collapse>
+    {#await logoutPromise}
+      <Spinner size="sm" />
+    {/await}
   </Navbar>
-  {#await logoutPromise}
-    <Spinner size="sm" />
-  {:catch error}
-    <div class="toast-container position-absolute top-0 start-0 mt-5 ms-5">
-      <Toast isOpen={toastIsOpen}>
-        <ToastHeader toggle={toggleToast}>Register Error</ToastHeader>
-        <ToastBody>
-          <p style="color: red">{error.message}</p>
-        </ToastBody>
-      </Toast>
-    </div>
-  {/await}
 </header>
 
 <style lang="scss">
