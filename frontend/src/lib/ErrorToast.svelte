@@ -9,7 +9,9 @@
   let nodeRef: SvelteComponentTyped;
 </script>
 
-<!-- TODO: This definitely causes a memory leak. Fix later -->
+<!-- TODO: This is bad for developing because
+  notifications comes back after hot reload...
+-->
 <Toast bind:this={nodeRef}>
   <ToastHeader
     toggle={() => {
@@ -17,9 +19,12 @@
     }}>{errorHeader}</ToastHeader
   >
   <ToastBody>
-    <p style="color: red">{errorMessage}</p>
+    <p>{errorMessage}</p>
   </ToastBody>
 </Toast>
 
 <style lang="scss">
+  p {
+    color: red;
+  }
 </style>

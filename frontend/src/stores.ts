@@ -12,4 +12,17 @@ interface NotifcationInterface {
   body: string;
 }
 
-export const notifications: Writable<NotifcationInterface[]> = writable([]);
+function createNotifications() {
+  const { subscribe, update }: Writable<NotifcationInterface[]> = writable([]);
+
+  return {
+    subscribe,
+    addNotification: (header: string, body: string) =>
+      update(
+        (oldNotifications) =>
+          (oldNotifications = [...oldNotifications, { header, body }])
+      ),
+  };
+}
+
+export const notifications = createNotifications();
