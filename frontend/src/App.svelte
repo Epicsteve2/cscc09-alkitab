@@ -9,11 +9,13 @@
 
   import AlkitabNavbar from "./lib/Navbar.svelte";
   import Footer from "./lib/Footer.svelte";
+  import Notifications from "./lib/Notifications.svelte";
 
   import { Router, Route } from "svelte-routing";
   export let url = "";
 </script>
 
+<Notifications />
 <Router {url}>
   <div class="fluid-container d-flex flex-column min-vh-100">
     <AlkitabNavbar />

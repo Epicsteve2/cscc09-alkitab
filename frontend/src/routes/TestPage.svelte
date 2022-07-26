@@ -40,6 +40,12 @@
       throw new Error(errorMessage);
     }
   }
+
+  import { notifications } from "../stores";
+
+  function addErrorNotification(header: string, body: string) {
+    $notifications = [...$notifications, { header, body }];
+  }
 </script>
 
 <Container>
@@ -57,6 +63,13 @@
     on:click={() => {
       getBooks();
     }}>Test get books</Button
+  >
+  <Button
+    color="warning"
+    class="mt-3"
+    on:click={() => {
+      addErrorNotification("test", "yo");
+    }}>Test add notification</Button
   >
   <!-- <Row>
     <Col>.col</Col>
