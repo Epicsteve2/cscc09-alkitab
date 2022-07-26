@@ -1,62 +1,35 @@
 <script lang="ts">
-  import { navigate } from "svelte-routing";
-
   export let bookId: string;
   export let pageNumberUrl: string;
-
-  import { Container, Spinner } from "sveltestrap";
-  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
-
   let pageNumber = parseInt(pageNumberUrl);
 
-  let promise = getBook(bookId);
-  async function getBook(bookId: string): Promise<void> {
-    console.log(pageNumber);
-    console.log({ pageNumberUrl });
+  import { Spinner } from "sveltestrap";
+  import { getBook } from "../api-service";
 
-    console.log(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book/${bookId}?page=${pageNumber}&limit=1`
-    );
-    const response = await self.fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
-      { method: "GET", credentials: "include" }
-    );
-    if (response.ok) {
-      const body = await response.json();
-      console.log(body.pages);
-      return body.pages;
-    } else {
-      throw new Error("error");
-    }
-  }
+  let getBookPromise = getBook(bookId, pageNumber);
 
   async function getNextPage(): Promise<void> {
     pageNumber += 1;
-    promise = getBook(bookId);
-    navigate(`/library/${bookId}/${pageNumber}`);
+    getBookPromise = getBook(bookId, pageNumber);
   }
 
   async function getPreviousPage(): Promise<void> {
     if (pageNumber > 1) {
       pageNumber -= 1;
-      promise = getBook(bookId);
-      navigate(`/library/${bookId}/${pageNumber}`);
+      getBookPromise = getBook(bookId, pageNumber);
     }
   }
 </script>
 
-<!-- <Container class="text-centering pt-5 d-flex flex-column" id="book-container"> -->
 <div
   class="container text-centering pt-5 d-flex flex-column"
   id="book-container"
 >
   <div class="">
-    {#await promise}
+    {#await getBookPromise}
       <p>Loading... <Spinner /></p>
     {:then pages}
       {@html pages[0]}
-    {:catch error}
-      <p style="color: red">{error.message}</p>
     {/await}
   </div>
   <div
@@ -70,14 +43,13 @@
     >
       Previous Page</button
     >
-    <p class="mt-auto mb-0">Page: {pageNumber}/</p>
+    <p class="mt-auto mb-0">Page: {pageNumber}/idk lol</p>
     <button class="btn btn-warning" type="button" on:click={getNextPage}>
       Next Page</button
     >
   </div>
 </div>
 
-<!-- </Container> -->
 <style lang="scss">
   #book-container {
     min-height: 87vh;

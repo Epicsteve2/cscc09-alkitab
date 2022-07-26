@@ -90,6 +90,13 @@
       Apparently, you need to set <code>credentials</code> to also be able to return
       cookies from the backend as well... 😡
     </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://svelte.dev/repl/a551a40e90374fd2861255c957123af2?version=3.22.2"
+      action
+      tag="a"
+      >Writing to an array store
+    </ListGroupItem>
     <!--
     <ListGroupItem
       color="warning"

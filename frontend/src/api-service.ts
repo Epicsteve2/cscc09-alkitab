@@ -64,3 +64,51 @@ export async function login(
     throw new Error(errorMessage);
   }
 }
+
+interface BookList {
+  _id: string;
+  user: string;
+  sharedUsers: any[];
+  bookPost: string;
+  title: string;
+  numPages: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export async function getBooks(): Promise<BookList[]> {
+  const response = await self.fetch(
+    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
+    { method: "GET", credentials: "include" }
+  );
+
+  if (response.ok) {
+    let bookList: BookList[] = await response.json();
+    return bookList;
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("Getting books error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getBook(
+  bookId: string,
+  pageNumber: number
+): Promise<void> {
+  const response = await self.fetch(
+    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
+    { method: "GET", credentials: "include" }
+  );
+
+  if (response.ok) {
+    const body = await response.json();
+    navigate(`/library/${bookId}/${pageNumber}`);
+    return body.pages;
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("Getting book error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
