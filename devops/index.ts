@@ -53,27 +53,29 @@ const mongodb = new k8s.helm.v3.Chart("mongodb", {
   },
 });
 
-// const mongoExpress = new k8s.helm.v3.Chart(
-//   "mongo-express",
-//   {
-//     chart: "mongo-express",
-//     version: "2.6.6",
-//     fetchOpts: {
-//       repo: "https://cowboysysop.github.io/charts/",
-//     },
-//     values: {
-//       image: {
-//         tag: "1.0.0-alpha.4",
-//       },
-//       mongodbEnableAdmin: true,
-//       mongodbAuthUsername: "root",
-//       mongodbAuthPassword: "123456",
-//       siteBaseUrl: "/mongo-express",
-//       // TODO: connect to database
-//     },
-//   },
-//   { dependsOn: mongodb.ready }
-// );
+const mongoExpress = new k8s.helm.v3.Chart(
+  "mongo-express",
+  {
+    chart: "mongo-express",
+    version: "2.6.6",
+    fetchOpts: {
+      repo: "https://cowboysysop.github.io/charts/",
+    },
+    values: {
+      // image: {
+      //   tag: "1.0.0-alpha.4",
+      // },
+      mongodbEnableAdmin: true,
+      mongodbAuthUsername: "root",
+      mongodbAdminPassword: "123456",
+      mongodbAuthDatabase: "books",
+      mongodbAuthPassword: "123456",
+      // ! now not needed cuz of rewrite rules
+      siteBaseUrl: "/mongo-express",
+    },
+  },
+  { dependsOn: mongodb.ready }
+);
 
 const whoami = new k8s.helm.v3.Chart("whoami", {
   chart: "whoami",
@@ -122,11 +124,11 @@ const frontendService = new k8s.core.v1.Service(appName, {
 // Next, expose the app using an Ingress.
 const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
   metadata: {
-    name: "test-ingress2",
+    name: "ingress",
     annotations: {
       "kubernetes.io/ingress.class": "nginx",
-      "nginx.ingress.kubernetes.io/rewrite-target": "/$1",
-      // "ingress.kubernetes.io/configuration-snippet": "try_files $uri $uri/ /index.html",
+      // "nginx.ingress.kubernetes.io/rewrite-target": "/$1",
+      // "nginx.ingress.kubernetes.io/rewrite-target": "/,",
     },
     // namespace: ns.metadata.name
   },
@@ -144,34 +146,34 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
         // host: "myservicea.foo.org",
         http: {
           paths: [
+            // {
+            //   pathType: "Prefix",
+            //   path: "/(.*)",
+            //   backend: {
+            //     service: {
+            //       // name: frontendDeployment.metadata.name,
+            //       name: "alkitab-frontend",
+            //       port: { number: 80 },
+            //     },
+            //   },
+            // },
+            {
+              pathType: "Prefix",
+              path: "/mongo-express",
+              backend: {
+                service: {
+                  // name: frontendDeployment.metadata.name,
+                  name: "mongo-express",
+                  port: { number: 8081 },
+                },
+              },
+            },
             {
               pathType: "Prefix",
               path: "/test3",
               backend: {
                 service: {
                   name: "whoami",
-                  port: { number: 80 },
-                },
-              },
-            },
-            {
-              pathType: "Prefix",
-              path: "/(.*)",
-              backend: {
-                service: {
-                  // name: frontendDeployment.metadata.name,
-                  name: "alkitab-frontend",
-                  port: { number: 80 },
-                },
-              },
-            },
-            {
-              pathType: "Prefix",
-              path: "/testagain",
-              backend: {
-                service: {
-                  // name: frontendDeployment.metadata.name,
-                  name: "alkitab-frontend",
                   port: { number: 80 },
                 },
               },

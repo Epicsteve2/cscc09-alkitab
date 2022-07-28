@@ -1,0 +1,12 @@
+# SETUP
+- `minkube start`
+  - I used the kvm driver. idk what's better lol
+  - `minikube start --driver=kvm2`
+- `export PULUMI_CONFIG_PASSPHRASE=WFLC2r4fXit2cjfC`
+  - obviously don't do this in prod
+- `minikube tunnel`
+- `docker build --build-arg NGINX_CONFIG="$(<nginx/nginx.conf)" --tag alkitab-frontend ./frontend`
+- `minikube image load alkitab-frontend:latest`
+- `pulumi login --local`
+- `pulumi --emoji up`
+-
