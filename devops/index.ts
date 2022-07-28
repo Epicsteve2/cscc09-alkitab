@@ -13,7 +13,7 @@ const isMinikube = config.requireBoolean("isMinikube");
 const appName = "alkitab";
 const appLabels = { app: appName };
 
-// Minikube does it's own thing with an ingress controller
+// Minikube does its own thing with an ingress controller
 if (!isMinikube) {
   const nginxIngressController = new nginx.IngressController(
     "nginx-ingress-controller",
@@ -66,12 +66,13 @@ const mongoExpress = new k8s.helm.v3.Chart(
       //   tag: "1.0.0-alpha.4",
       // },
       mongodbEnableAdmin: true,
-      mongodbAuthUsername: "root",
       mongodbAdminPassword: "123456",
+      mongodbAuthUsername: "Mashiro",
       mongodbAuthDatabase: "books",
-      mongodbAuthPassword: "123456",
-      // ! now not needed cuz of rewrite rules
+      mongodbAuthPassword: "SoupPasta",
       siteBaseUrl: "/mongo-express",
+      // basicAuthUsername: "Mashiro", // TODO: Prod
+      // basicAuthPassword: "123456", // TODO: Prod
     },
   },
   { dependsOn: mongodb.ready }
@@ -146,23 +147,11 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
         // host: "myservicea.foo.org",
         http: {
           paths: [
-            // {
-            //   pathType: "Prefix",
-            //   path: "/(.*)",
-            //   backend: {
-            //     service: {
-            //       // name: frontendDeployment.metadata.name,
-            //       name: "alkitab-frontend",
-            //       port: { number: 80 },
-            //     },
-            //   },
-            // },
             {
               pathType: "Prefix",
               path: "/mongo-express",
               backend: {
                 service: {
-                  // name: frontendDeployment.metadata.name,
                   name: "mongo-express",
                   port: { number: 8081 },
                 },
