@@ -12,18 +12,12 @@ import config from './config/general';
 
 import userRouter from './routes/user';
 import libraryRouter from './routes/library';
+import bookPostRouter from './routes/bookPost';
+import sharedBooksRouter from './routes/sharedBooks';
 
 import {ServerToClientEvents,ClientToServerEvents, InterServerEvents, SocketData} from './interfaces/socketio'
 
 import User from './models/user';
-
-// const adminUser = new User({
-// 	username: "admin",
-// 	password: "123456"
-// })
-// adminUser.save()
-
-
 
 
 const NAMESPACE: string = 'App';
@@ -127,7 +121,8 @@ io.on("connection", (socket) => {
 // API Routes
 app.use('/api/users', userRouter);
 app.use('/api/library/', libraryRouter)
-app.use('/api/bookpost/', libraryRouter)
+app.use('/api/bookpost/', bookPostRouter)
+app.use('/api/sharedbooks/', sharedBooksRouter)
 
 // Error Handling
 app.use((req, res, next) => {

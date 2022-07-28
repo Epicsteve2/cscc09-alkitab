@@ -7,6 +7,7 @@ import fs from 'fs';
 import mongoose from 'mongoose';
 import { parse } from 'node-html-parser';
 import Epub from "epub";
+import path from "path"
 
 
 import User from '../models/user';
@@ -116,7 +117,6 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
     // expect(req.files.book, "file needed").to.exist;
     const book = new Book({
         user: req.session.user || req.body.username ,
-        sharedUsers: [],
         pages: [],
         bookPost: req.body.bookPost || "Mock",
         title: "Placeholder"
@@ -150,6 +150,76 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
 
     
 };
+
+const recurProcessImages = function(imagesIds: Array<string>, epub:any, bookId:string){
+    if (imagesIds.length == 0){
+        return 0;
+    } else {
+        epub.getImage(imagesIds[0], (err: any, img: any, mimeType: any) => {
+            if (err) console.log(err)
+            console.log(img);
+            console.log(mimeType)
+            
+            
+            fs.promises.mkdir(path.join('uploads', bookId), { recursive: true }).then(() =>{
+                fs.writeFile(path.join('uploads', bookId, imagesIds[0]), img, (err => {
+                    console.log(err)
+                }));
+
+            })
+
+
+        })
+    }
+
+}
+
+export const upload2: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    // expect(req.files.book, "file needed").to.exist;
+    const book = new Book({
+        user: req.session.user || req.body.username ,
+        sharedUsers: [],
+        pages: [],
+        bookPost: req.body.bookPost || "Mock",
+        title: "Placeholder"
+    });
+
+    
+    const files = req.files as { [fieldname: string]: Express.Multer.File[]};
+    const bookPath = files.book[0].path
+
+    let epub = new Epub(bookPath);
+    epub.parse();
+    epub.on("end", async function () {
+
+        book.title = epub.metadata.title;
+        const chapters = epub.flow.map(element => element.id);  
+        
+        console.log(epub.manifest);
+
+        const regex = new RegExp('image*');
+
+        const imageIds = Object.keys(epub.manifest).filter(id => {
+            const manifest:any = epub.manifest;
+            const value:any = manifest[id];
+            if (regex.test(value['media-type']))
+                return true
+            else 
+                return false
+        })
+
+        console.log(imageIds);
+        recurProcessImages(imageIds, epub, "7777878");
+
+        fs.unlink(bookPath, (err) =>{
+            // console.log(err);
+        });
+
+    });
+
+};
+
+
 
 export const test: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;

@@ -4,7 +4,6 @@ import mongoose, { Schema } from 'mongoose';
 const BookSchema: Schema = new Schema(
 	{
 		user: { type: String, required: true},
-		sharedUsers: { type: Array<String> },
 
 		bookPost: { type: String, required: true},
 		title: { type: String, required: true},
