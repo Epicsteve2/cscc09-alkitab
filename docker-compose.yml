@@ -61,7 +61,7 @@ services:
       ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
       ME_CONFIG_MONGODB_AUTH_USERNAME: root
       ME_CONFIG_MONGODB_AUTH_PASSWORD: 123456
-      ME_CONFIG_SITE_BASEURL: /mongoadmin
+      ME_CONFIG_SITE_BASEURL: /mongo-express
     depends_on:
       - mongodb
     expose:
