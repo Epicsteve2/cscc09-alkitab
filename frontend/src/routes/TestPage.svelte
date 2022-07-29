@@ -4,8 +4,12 @@
 
   import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
 
+  const API_URL = import.meta.env.DEV
+    ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
+    : "";
+
   async function whoami() {
-    const response = await self.fetch(`api/users/whoami`, {
+    const response = await self.fetch(`${API_URL}/api/users/whoami`, {
       method: "GET",
       credentials: "include",
     });
@@ -20,7 +24,7 @@
   }
 
   async function getBooks() {
-    const response = await self.fetch(`api/library`, {
+    const response = await self.fetch(`${API_URL}/api/library`, {
       method: "GET",
       credentials: "include",
     });

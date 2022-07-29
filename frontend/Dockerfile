@@ -20,5 +20,5 @@ COPY --from=build /alkitab-frontend/dist /usr/share/nginx/html
 # For production, we want to directly add nginx.conf
 # to the docker image instead of mounting it as a volume
 ARG NGINX_CONFIG
-RUN echo "$NGINX_CONFIG" > /etc/nginx/nginx.conf
-# RUN echo "$NGINX_CONFIG" > /etc/nginx/conf.d/alkitab.conf
+# RUN echo "$NGINX_CONFIG" > /etc/nginx/nginx.conf
+RUN echo "$NGINX_CONFIG" > /etc/nginx/conf.d/alkitab.conf

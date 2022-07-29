@@ -7,11 +7,16 @@ import {
 
 import { navigate } from "svelte-routing";
 
+// Use custom URL for development
+const API_URL = import.meta.env.DEV
+  ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
+  : "";
+
 export async function register(
   username: string,
   password: string
 ): Promise<Object> {
-  const response = await self.fetch(`api/users/register`, {
+  const response = await self.fetch(`${API_URL}/api/users/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -37,7 +42,7 @@ export async function login(
   username: string,
   password: string
 ): Promise<Object> {
-  const response = await self.fetch(`api/users/login`, {
+  const response = await self.fetch(`${API_URL}/api/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -64,7 +69,7 @@ export async function sendEpubFile(username: string, epubFile: File) {
   formData.append("username", username);
   formData.append("book", epubFile);
 
-  const response = await self.fetch(`api/library/book`, {
+  const response = await self.fetch(`${API_URL}/api/library/book`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -94,7 +99,7 @@ interface BookList {
 }
 
 export async function getBooks(): Promise<BookList[]> {
-  const response = await self.fetch(`api/library`, {
+  const response = await self.fetch(`${API_URL}/api/library`, {
     method: "GET",
     credentials: "include",
   });
@@ -114,7 +119,7 @@ export async function getBook(
   pageNumber: number
 ): Promise<void> {
   const response = await self.fetch(
-    `api/library/book/${bookId}?page=${pageNumber}&limit=1`,
+    `${API_URL}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
     { method: "GET", credentials: "include" }
   );
 
@@ -130,7 +135,7 @@ export async function getBook(
 }
 
 export async function logout(): Promise<Object> {
-  const response = await self.fetch(`api/users/logout`, {
+  const response = await self.fetch(`${API_URL}/api/users/logout`, {
     method: "GET",
     credentials: "include",
   });
@@ -148,12 +153,13 @@ export async function logout(): Promise<Object> {
 }
 
 export async function whoami(): Promise<Object> {
-  const response = await fetch(`api/users/whoami`, { credentials: "include" });
+  const response = await fetch(`${API_URL}/api/users/whoami`, {
+    credentials: "include",
+  });
 
   if (response.ok) {
     let getCurrentUser = await response.json();
     currentUser.set(getCurrentUser.user || "");
-    navigate("/", { replace: true });
     return getCurrentUser;
   } else {
     let errorMessage: string = await response.text();
