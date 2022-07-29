@@ -5,13 +5,10 @@
   import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
 
   async function whoami() {
-    const response = await self.fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
-    );
+    const response = await self.fetch(`api/users/whoami`, {
+      method: "GET",
+      credentials: "include",
+    });
 
     if (response.ok) {
       let user = await response.json();
@@ -23,13 +20,10 @@
   }
 
   async function getBooks() {
-    const response = await self.fetch(
-      `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
-    );
+    const response = await self.fetch(`api/library`, {
+      method: "GET",
+      credentials: "include",
+    });
 
     if (response.ok) {
       let bookList = await response.json();

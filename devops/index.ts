@@ -8,8 +8,6 @@ const stack = pulumi.getStack();
 const config = new pulumi.Config();
 const isMinikube = config.requireBoolean("isMinikube");
 
-// const ns = new k8s.core.v1.Namespace("default");
-
 const appName = "alkitab";
 const appLabels = { app: appName };
 
@@ -26,16 +24,13 @@ if (!isMinikube) {
           type: isMinikube ? "ClusterIP" : "LoadBalancer",
         },
       },
-      // helmOptions: {
-      //     namespace: ns.metadata.name,
-      // },
     }
   );
 }
 
 const mongodb = new k8s.helm.v3.Chart("mongodb", {
   chart: "mongodb",
-  version: "12.1.29",
+  version: "12.1.30",
   fetchOpts: {
     repo: "https://charts.bitnami.com/bitnami",
   },
@@ -45,10 +40,6 @@ const mongodb = new k8s.helm.v3.Chart("mongodb", {
     },
     auth: {
       rootPassword: "123456",
-      databases: ["books"],
-      // idk why this is needed
-      usernames: ["Mashiro"],
-      passwords: ["SoupPasta"],
     },
   },
 });
@@ -62,17 +53,14 @@ const mongoExpress = new k8s.helm.v3.Chart(
       repo: "https://cowboysysop.github.io/charts/",
     },
     values: {
-      // image: {
-      //   tag: "1.0.0-alpha.4",
-      // },
+      image: {
+        tag: "1.0.0-alpha.4",
+      },
       mongodbEnableAdmin: true,
       mongodbAdminPassword: "123456",
-      mongodbAuthUsername: "Mashiro",
-      mongodbAuthDatabase: "books",
-      mongodbAuthPassword: "SoupPasta",
       siteBaseUrl: "/mongo-express",
-      // basicAuthUsername: "Mashiro", // TODO: Prod
-      // basicAuthPassword: "123456", // TODO: Prod
+      basicAuthUsername: isMinikube ? null : "Mashiro",
+      basicAuthPassword: isMinikube ? null : "SoupPasta",
     },
   },
   { dependsOn: mongodb.ready }
@@ -92,28 +80,22 @@ const frontendDeployment = new k8s.apps.v1.Deployment(
               name: `${appName}-frontend`,
               image: "alkitab-frontend",
               imagePullPolicy: "Never",
-              ports: [
-                {
-                  containerPort: 80,
-                },
-              ],
+              ports: [{ containerPort: 80 }],
             },
           ],
         },
       },
     },
-  },
-  { dependsOn: mongodb.ready }
+  }
 );
 
 const frontendService = new k8s.core.v1.Service(`${appName}-frontend-service`, {
   metadata: {
     labels: frontendDeployment.spec.template.metadata.labels,
-    name: "alkitab-frontend",
+    name: "alkitab-frontend-service",
   },
   spec: {
-    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
-    type: "ClusterIP",
+    type: isMinikube ? "ClusterIP" : "LoadBalancer",
     ports: [{ port: 80 }],
     selector: appLabels,
   },
@@ -132,28 +114,25 @@ const backendDeployment = new k8s.apps.v1.Deployment(
             {
               name: `${appName}-backend`,
               image: "alkitab-backend",
-              imagePullPolicy: "Never",
-              ports: [
-                {
-                  containerPort: 3000,
-                },
-              ],
+              imagePullPolicy: isMinikube ? "Never" : "Always",
+              ports: [{ containerPort: 3000 }],
+              env: [{ name: "MONGO_HOST", value: "mongodb" }],
             },
           ],
         },
       },
     },
-  }
+  },
+  { dependsOn: mongodb.ready }
 );
 
 const backendService = new k8s.core.v1.Service(`${appName}-backend-service`, {
   metadata: {
     labels: backendDeployment.spec.template.metadata.labels,
-    name: "alkitab-backend",
+    name: "alkitab-backend-service",
   },
   spec: {
-    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
-    type: "ClusterIP",
+    type: isMinikube ? "ClusterIP" : "LoadBalancer",
     ports: [{ port: 3000 }],
     selector: appLabels,
   },
@@ -166,15 +145,12 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
     annotations: {
       "kubernetes.io/ingress.class": "nginx",
       // "nginx.ingress.kubernetes.io/rewrite-target": "/$1",
-      // "nginx.ingress.kubernetes.io/rewrite-target": "/,",
     },
-    // namespace: ns.metadata.name
   },
   spec: {
     defaultBackend: {
       service: {
-        // name: frontendDeployment.metadata.name,
-        name: "alkitab-frontend",
+        name: "alkitab-frontend-service",
         port: { number: 80 },
       },
     },
@@ -199,18 +175,8 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
               path: "/api",
               backend: {
                 service: {
-                  name: "alkitab-backend",
+                  name: "alkitab-backend-service",
                   port: { number: 3000 },
-                },
-              },
-            },
-            {
-              pathType: "Prefix",
-              path: "/test3",
-              backend: {
-                service: {
-                  name: "whoami",
-                  port: { number: 80 },
                 },
               },
             },

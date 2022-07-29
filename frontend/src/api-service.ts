@@ -11,18 +11,15 @@ export async function register(
   username: string,
   password: string
 ): Promise<Object> {
-  const response = await self.fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/register`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: username,
-        password: password,
-      }),
-      credentials: "include",
-    }
-  );
+  const response = await self.fetch(`api/users/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+    }),
+    credentials: "include",
+  });
 
   if (response.ok) {
     let registerResponse = await response.json();
@@ -40,18 +37,15 @@ export async function login(
   username: string,
   password: string
 ): Promise<Object> {
-  const response = await self.fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/login`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: username,
-        password: password,
-      }),
-      credentials: "include",
-    }
-  );
+  const response = await self.fetch(`api/users/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+    }),
+    credentials: "include",
+  });
 
   if (response.ok) {
     let loginResponse = await response.json();
@@ -70,14 +64,11 @@ export async function sendEpubFile(username: string, epubFile: File) {
   formData.append("username", username);
   formData.append("book", epubFile);
 
-  const response = await self.fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book`,
-    {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    }
-  );
+  const response = await self.fetch(`api/library/book`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
 
   if (response.ok) {
     let sendFileResponse = await response.json();
@@ -103,10 +94,10 @@ interface BookList {
 }
 
 export async function getBooks(): Promise<BookList[]> {
-  const response = await self.fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library`,
-    { method: "GET", credentials: "include" }
-  );
+  const response = await self.fetch(`api/library`, {
+    method: "GET",
+    credentials: "include",
+  });
 
   if (response.ok) {
     let bookList: BookList[] = await response.json();
@@ -123,7 +114,7 @@ export async function getBook(
   pageNumber: number
 ): Promise<void> {
   const response = await self.fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
+    `api/library/book/${bookId}?page=${pageNumber}&limit=1`,
     { method: "GET", credentials: "include" }
   );
 
@@ -139,10 +130,10 @@ export async function getBook(
 }
 
 export async function logout(): Promise<Object> {
-  const response = await self.fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/logout`,
-    { method: "GET", credentials: "include" }
-  );
+  const response = await self.fetch(`api/users/logout`, {
+    method: "GET",
+    credentials: "include",
+  });
 
   if (response.ok) {
     let logoutResponse = await response.json();
@@ -157,10 +148,7 @@ export async function logout(): Promise<Object> {
 }
 
 export async function whoami(): Promise<Object> {
-  const response = await fetch(
-    `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}/api/users/whoami`,
-    { credentials: "include" }
-  );
+  const response = await fetch(`api/users/whoami`, { credentials: "include" });
 
   if (response.ok) {
     let getCurrentUser = await response.json();

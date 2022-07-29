@@ -129,6 +129,8 @@ mongoose
 	.then((r) => logging.info(NAMESPACE, 'Connected to MongoDB Database!'))
 	.catch((error) => logging.error(NAMESPACE, error.message, error));
 
+console.log('Mongo URL: ', config.mongo.url);
+
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => {

@@ -1,6 +1,12 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const MONGO_PORT = parseInt(process.env.MONGO_PORT || '27017');
+const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
+const MONGO_DB_NAME = process.env.MONGO_DB_NAME || 'AlkitabDB';
+const MONGO_USER = process.env.MONGO_USER || 'root';
+const MONGO_PASS = process.env.MONGO_PASS || '123456';
+
 const MONGO_OPTIONS = {
 	useUnifiedTopology: true,
 	useNewUrlParser: true,
@@ -9,15 +15,10 @@ const MONGO_OPTIONS = {
 	autoIndex: false,
 	retryWrites: false,
 
-	user: "root",
-	pass: process.env.PASS
+	user: MONGO_USER,
+	pass: MONGO_PASS
 };
 
-const MONGO_PORT = parseInt(process.env.MONGO_PORT || '27017');
-const MONGO_HOST = process.env.MONGO_HOST || 'localhost';
-const MONGO_DB_NAME = process.env.MONGO_DB_NAME || 'AlkitabDB';
-const MONGO_USER = "root"
-const MONGO_PASS = 123456
 const MONGO = {
 	host: MONGO_HOST,
 	options: MONGO_OPTIONS,
