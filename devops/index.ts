@@ -144,7 +144,9 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
     name: "ingress",
     annotations: {
       "kubernetes.io/ingress.class": "nginx",
-      // "nginx.ingress.kubernetes.io/rewrite-target": "/$1",
+      "nginx.ingress.kubernetes.io/proxy-body-size": "0",
+      "nginx.ingress.kubernetes.io/proxy-read-timeout": "600",
+      "nginx.ingress.kubernetes.io/proxy-send-timeout": "600",
     },
   },
   spec: {
@@ -184,6 +186,67 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
         },
       },
     ],
+  },
+});
+
+const portainerIngress = new k8s.networking.v1.Ingress(`portainer-ingress`, {
+  metadata: {
+    name: "portainer-ingress",
+    annotations: {
+      "nginx.ingress.kubernetes.io/rewrite-target": "/$2",
+    },
+  },
+  spec: {
+    rules: [
+      {
+        // Replace this with your own domain!
+        // host: "myservicea.foo.org",
+        http: {
+          paths: [
+            {
+              pathType: "Prefix",
+              path: "/portainer(/|$)(.*)",
+              backend: {
+                service: {
+                  name: "portainer",
+                  port: { number: 9000 },
+                },
+              },
+            },
+          ],
+        },
+      },
+    ],
+  },
+});
+
+const portainer = new k8s.helm.v3.Chart("portainer", {
+  chart: "portainer",
+  // version: "12.1.30",
+  fetchOpts: {
+    repo: "https://portainer.github.io/k8s/",
+  },
+  values: {
+    ingress: {
+      enabled: true,
+      ingressClassName: "nginx",
+      // annotations: {
+      //   "kubernetes.io/ingress.class": "nginx",
+      // },
+      hosts: [
+        {
+          host: null,
+          paths: [
+            {
+              path: "/portainer",
+            },
+          ],
+        },
+      ],
+    },
+    service: {
+      type: "ClusterIP",
+    },
   },
 });
 
