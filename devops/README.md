@@ -4,9 +4,11 @@
   - `minikube start --driver=kvm2`
 - `export PULUMI_CONFIG_PASSPHRASE=WFLC2r4fXit2cjfC`
   - obviously don't do this in prod
+- `minikube addons enable ingress`
 - `minikube tunnel`
 - `docker build --build-arg NGINX_CONFIG="$(<nginx/nginx.conf)" --tag alkitab-frontend ./frontend`
+- `docker build --tag alkitab-backend ./backend`
+- `minikube image load alkitab-backend:latest`
 - `minikube image load alkitab-frontend:latest`
 - `pulumi login --local`
 - `pulumi --emoji up`
--

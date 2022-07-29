@@ -78,38 +78,35 @@ const mongoExpress = new k8s.helm.v3.Chart(
   { dependsOn: mongodb.ready }
 );
 
-const whoami = new k8s.helm.v3.Chart("whoami", {
-  chart: "whoami",
-  fetchOpts: {
-    repo: "https://cowboysysop.github.io/charts/",
-  },
-});
-
-const frontendDeployment = new k8s.apps.v1.Deployment(appName, {
-  spec: {
-    selector: { matchLabels: appLabels },
-    replicas: 1,
-    template: {
-      metadata: { labels: appLabels },
-      spec: {
-        containers: [
-          {
-            name: `${appName}-frontend`,
-            image: "alkitab-frontend",
-            imagePullPolicy: "Never",
-            ports: [
-              {
-                containerPort: 80,
-              },
-            ],
-          },
-        ],
+const frontendDeployment = new k8s.apps.v1.Deployment(
+  `${appName}-frontend-deployment`,
+  {
+    spec: {
+      selector: { matchLabels: appLabels },
+      replicas: 1,
+      template: {
+        metadata: { labels: appLabels },
+        spec: {
+          containers: [
+            {
+              name: `${appName}-frontend`,
+              image: "alkitab-frontend",
+              imagePullPolicy: "Never",
+              ports: [
+                {
+                  containerPort: 80,
+                },
+              ],
+            },
+          ],
+        },
       },
     },
   },
-});
+  { dependsOn: mongodb.ready }
+);
 
-const frontendService = new k8s.core.v1.Service(appName, {
+const frontendService = new k8s.core.v1.Service(`${appName}-frontend-service`, {
   metadata: {
     labels: frontendDeployment.spec.template.metadata.labels,
     name: "alkitab-frontend",
@@ -118,6 +115,46 @@ const frontendService = new k8s.core.v1.Service(appName, {
     // type: isMinikube ? "ClusterIP" : "LoadBalancer",
     type: "ClusterIP",
     ports: [{ port: 80 }],
+    selector: appLabels,
+  },
+});
+
+const backendDeployment = new k8s.apps.v1.Deployment(
+  `${appName}-backend-deployment`,
+  {
+    spec: {
+      selector: { matchLabels: appLabels },
+      replicas: 1,
+      template: {
+        metadata: { labels: appLabels },
+        spec: {
+          containers: [
+            {
+              name: `${appName}-backend`,
+              image: "alkitab-backend",
+              imagePullPolicy: "Never",
+              ports: [
+                {
+                  containerPort: 3000,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+  }
+);
+
+const backendService = new k8s.core.v1.Service(`${appName}-backend-service`, {
+  metadata: {
+    labels: backendDeployment.spec.template.metadata.labels,
+    name: "alkitab-backend",
+  },
+  spec: {
+    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
+    type: "ClusterIP",
+    ports: [{ port: 3000 }],
     selector: appLabels,
   },
 });
@@ -154,6 +191,16 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
                 service: {
                   name: "mongo-express",
                   port: { number: 8081 },
+                },
+              },
+            },
+            {
+              pathType: "Prefix",
+              path: "/api",
+              backend: {
+                service: {
+                  name: "alkitab-backend",
+                  port: { number: 3000 },
                 },
               },
             },
