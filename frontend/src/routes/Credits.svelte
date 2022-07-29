@@ -97,6 +97,13 @@
       tag="a"
       >Writing to an array store
     </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://kubernetes.github.io/ingress-nginx/examples/rewrite/"
+      action
+      tag="a"
+      >Rewrite for NGINX-ingress
+    </ListGroupItem>
     <!--
     <ListGroupItem
       color="warning"

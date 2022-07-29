@@ -6,6 +6,7 @@
     "dependencies": {
         "@pulumi/docker": "^3.2.0",
         "@pulumi/kubernetes": "^3.0.0",
+        "@pulumi/kubernetes-cert-manager": "^0.0.3",
         "@pulumi/kubernetes-ingress-nginx": "^0.0.6",
         "@pulumi/kubernetesx": "^0.1.5",
         "@pulumi/pulumi": "^3.0.0"
