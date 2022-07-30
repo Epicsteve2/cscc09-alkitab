@@ -15,19 +15,26 @@ const appLabels = { app: appName };
 // Minikube does its own thing with an ingress controller
 if (!isMinikube) {
   const nginxIngressController = new nginx.IngressController(
-    "nginx-ingress-controller",
-    {
-      controller: {
-        publishService: {
-          enabled: true,
-        },
-        service: {
-          type: isMinikube ? "ClusterIP" : "LoadBalancer",
-        },
-      },
-    }
+    "nginx-ic"
+    //   {
+    //   helmOptions: {
+    //     values: {
+    //       controller: { service: { externalIPs: ["172.105.15.152"] } },
+    //     },
+    //   },
+    // }
   );
 }
+
+// ! Doesn't run hooks for pulumi...
+// const ingressNginx = new k8s.helm.v3.Chart("ingress-nginx", {
+//   chart: "ingress-nginx",
+//   // version: "12.1.30",
+//   fetchOpts: {
+//     repo: "https://kubernetes.github.io/ingress-nginx",
+//   },
+//   values: {},
+// });
 
 const mongodb = new k8s.helm.v3.Chart("mongodb", {
   chart: "mongodb",
@@ -79,8 +86,8 @@ const frontendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-frontend`,
-              image: "alkitab-frontend",
-              imagePullPolicy: "Never",
+              image: "epicsteve2/alkitab-frontend",
+              imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 80 }],
             },
           ],
@@ -96,7 +103,8 @@ const frontendService = new k8s.core.v1.Service(`${appName}-frontend-service`, {
     name: "alkitab-frontend-service",
   },
   spec: {
-    type: isMinikube ? "ClusterIP" : "LoadBalancer",
+    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
+    type: "ClusterIP",
     ports: [{ port: 80 }],
     selector: appLabels,
   },
@@ -114,7 +122,7 @@ const backendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-backend`,
-              image: "alkitab-backend",
+              image: "epicsteve2/alkitab-backend",
               imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 3000 }],
               env: [{ name: "MONGO_HOST", value: "mongodb" }],
@@ -133,7 +141,8 @@ const backendService = new k8s.core.v1.Service(`${appName}-backend-service`, {
     name: "alkitab-backend-service",
   },
   spec: {
-    type: isMinikube ? "ClusterIP" : "LoadBalancer",
+    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
+    type: "ClusterIP",
     ports: [{ port: 3000 }],
     selector: appLabels,
   },
@@ -147,7 +156,7 @@ const certManager = new certmanager.CertManager("cert-manager", {
   },
 });
 
-// yeah i'm not gonna bother with the pulumi api. Just creat custom resources i guess lol
+// yeah i'm not gonna bother with the pulumi api. Just create custom resources i guess lol
 if (isMinikube) {
   const clusterIssuer = new k8s.apiextensions.CustomResource(
     "self-signed-cluster-issuer",
@@ -155,15 +164,14 @@ if (isMinikube) {
       apiVersion: "cert-manager.io/v1",
       kind: "ClusterIssuer",
       metadata: {
-        name: "selfsigned-cluster-issuer",
+        name: "self-signed-cluster-issuer",
         namespace: "cert-manager",
       },
       spec: {
         selfSigned: {},
       },
-    }
-    // ! Idk if this works
-    // { dependsOn: certManager }
+    },
+    { dependsOn: certManager }
   );
   const certificate = new k8s.apiextensions.CustomResource(
     "self-signed-certificate",
@@ -182,7 +190,8 @@ if (isMinikube) {
           group: "cert-manager.io",
         },
       },
-    }
+    },
+    { dependsOn: certManager }
   );
 }
 
@@ -209,16 +218,16 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
         port: { number: 80 },
       },
     },
-    tls: [
-      {
-        // hosts: [""],
-        secretName: "self-signed-tls-secret",
-      },
-    ],
+    // tls: [
+    //   {
+    //     // hosts: [""],
+    //     secretName: "self-signed-tls-secret",
+    //   },
+    // ],
     rules: [
       {
         // Replace this with your own domain!
-        // host: "myservicea.foo.org",
+        // host: "cscc09-alkitab.ninja",
         http: {
           paths: [
             {
@@ -241,45 +250,13 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
                 },
               },
             },
-          ],
-        },
-      },
-    ],
-  },
-});
-
-const portainerIngress = new k8s.networking.v1.Ingress(`portainer-ingress`, {
-  metadata: {
-    name: "portainer-ingress",
-    annotations: {
-      "nginx.ingress.kubernetes.io/rewrite-target": "/$2",
-      ...(isMinikube && {
-        "cert-manager.io/cluster-issuer": "self-signed-cluster-issuer",
-        // This is only needed for minikube I think
-        "nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
-      }),
-    },
-  },
-  spec: {
-    tls: [
-      {
-        // hosts: [""],
-        secretName: "self-signed-tls-secret",
-      },
-    ],
-    rules: [
-      {
-        // Replace this with your own domain!
-        // host: "myservicea.foo.org",
-        http: {
-          paths: [
             {
               pathType: "Prefix",
-              path: "/portainer(/|$)(.*)",
+              path: "/docker",
               backend: {
                 service: {
-                  name: "portainer",
-                  port: { number: 9000 },
+                  name: "docker-registry",
+                  port: { number: 5000 },
                 },
               },
             },
@@ -300,12 +277,15 @@ const portainer = new k8s.helm.v3.Chart("portainer", {
     ingress: {
       enabled: true,
       ingressClassName: "nginx",
+      annotations: {
+        "nginx.ingress.kubernetes.io/rewrite-target": "/$2",
+      },
       hosts: [
         {
-          host: null,
+          // host: null,
           paths: [
             {
-              path: "/portainer",
+              path: "/portainer(/|$)(.*)",
             },
           ],
         },

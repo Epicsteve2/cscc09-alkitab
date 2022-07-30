@@ -19,3 +19,10 @@
   ```
 - `pulumi login --local`
 - `pulumi --emoji up`
+
+# Linode setup
+- `cd ../linode`
+- `pulumi --emoji up`
+- download kube config and set it
+  - `export KUBECONFIG=~/Downloads/alkitab-kubeconfig.yaml`
+-
