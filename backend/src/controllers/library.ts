@@ -7,6 +7,7 @@ import fs from 'fs';
 import mongoose from 'mongoose';
 import { parse } from 'node-html-parser';
 import Epub from "epub";
+import path from "path"
 
 
 import User from '../models/user';
@@ -15,6 +16,7 @@ import IBook from '../interfaces/book';
 import Book from '../models/book';
 import { fstat } from 'fs';
 import EPub from 'epub';
+import { ChildProcess } from 'child_process';
 
 const NAMESPACE = 'Library Controller';
 
@@ -24,7 +26,8 @@ const recurProcessChapters = async function(chapters: Array<string>, book: IBook
     if (chapters.length === 0){
        book.numPages = book.pages.length;
        const numPages = book.numPages;
-       await book.save();
+       await processImage(book, epub)
+    //    await book.save();
        callback();
        console.log(numPages);
        console.log("SAVEDSAEVD")
@@ -100,7 +103,26 @@ const processTreeToPage2 = function(book: IBook, tree:any){
     while (tree.rawTagName !== 'body'){
         tree = tree.parentNode;
     }
+    addIds(tree);
     book.pages.push(tree.toString())
+}
+
+const addIds = function(tree:any){
+    let id=0;
+    let cur:any
+    const queue = [];
+    queue.push(tree);
+
+    while(queue.length !== 0){
+        const cur = queue.shift();
+        if (cur.nodeType === 1){
+            cur.rawAttrs = cur.rawAttrs + " tree-id=" + (id++);
+            cur.childNodes.forEach((child: any) => {
+                queue.push(child);
+            });
+        }
+    }
+
 }
 
 const getBaseNode2 = function(tree:any){
@@ -116,10 +138,14 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
     // expect(req.files.book, "file needed").to.exist;
     const book = new Book({
         user: req.session.user || req.body.username ,
-        sharedUsers: [],
         pages: [],
         bookPost: req.body.bookPost || "Mock",
-        title: "Placeholder"
+        title: "Placeholder",
+        coverImg : {
+            id : "",
+            mimeType: "",
+            path: ""
+        }
     });
 
     
@@ -151,6 +177,106 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
     
 };
 
+const recurProcessImages = async function(imagesIds: Array<string>, epub:any, bookId:string, firstImage:boolean, book:IBook){
+    if (imagesIds.length == 0){
+        await book.save()
+        return 0;
+    } else {
+        epub.getImage(imagesIds[0], (err: any, img: any, mimeType: any) => {
+            if (err) console.log(err)
+            console.log(img);
+            console.log(mimeType)
+
+            if (firstImage){
+                book.coverImg = {id:"", mimeType: "", path: ""};
+                book.coverImg.id = imagesIds[0];
+                book.coverImg.mimeType = mimeType;
+                book.coverImg.path = path.join('uploads', bookId, imagesIds[0]);
+            }
+                
+            
+            
+            fs.promises.mkdir(path.join('uploads', bookId), { recursive: true }).then(() =>{
+                fs.writeFile(path.join('uploads', bookId, imagesIds[0]), img, (err => {
+                    console.log(err)
+                }));
+
+            })
+
+            recurProcessImages(imagesIds.slice(1), epub, bookId, false, book);
+
+
+        })
+    }
+
+}
+
+const processImage = async function(book:IBook, epub:any) {
+    const bookId = book._id.toString();
+
+    const regex = new RegExp('image*');
+
+    const imageIds = Object.keys(epub.manifest).filter(id => {
+        const manifest:any = epub.manifest;
+        const value:any = manifest[id];
+        if (regex.test(value['media-type']))
+            return true
+        else 
+            return false
+    })
+
+    console.log(imageIds);
+    await recurProcessImages(imageIds, epub, bookId, true, book);
+
+}
+
+export const upload2: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    // expect(req.files.book, "file needed").to.exist;
+    const book = new Book({
+        user: req.session.user || req.body.username ,
+        sharedUsers: [],
+        pages: [],
+        bookPost: req.body.bookPost || "Mock",
+        title: "Placeholder"
+    });
+
+    
+    const files = req.files as { [fieldname: string]: Express.Multer.File[]};
+    const bookPath = files.book[0].path
+
+    let epub = new Epub(bookPath);
+    epub.parse();
+    epub.on("end", async function () {
+
+        book.title = epub.metadata.title;
+        const chapters = epub.flow.map(element => element.id);  
+        
+        console.log(epub.manifest);
+
+        const regex = new RegExp('image*');
+
+        const imageIds = Object.keys(epub.manifest).filter(id => {
+            const manifest:any = epub.manifest;
+            const value:any = manifest[id];
+            if (regex.test(value['media-type']))
+                return true
+            else 
+                return false
+        })
+
+        console.log(imageIds);
+        recurProcessImages(imageIds, epub, "7777878", true, book);
+
+        fs.unlink(bookPath, (err) =>{
+            // console.log(err);
+        });
+
+    });
+
+};
+
+
+
 export const test: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // expect(req.files.book, "file needed").to.exist;
 
@@ -175,7 +301,13 @@ export const test: RequestHandler = async (req: Request, res: Response, next: Ne
     </html>
 `;
     const root = parse(text);
-    const textnode = parse("hello").firstChild
+   
+    const textnode:any = parse("<p class=\"calibr1 calir2\" alt=\"dsfjlk\">hello</p>").firstChild
+    textnode.rawAttrs = textnode.rawAttrs + " tree-id=1"
+    console.log(textnode)
+    console.log(textnode.toString())
+
+    res.status(200).json("lol")
 };
 
 export const getBook: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -193,6 +325,19 @@ export const getBook: RequestHandler = async (req: Request, res: Response, next:
     }
 
 };
+
+export const getCoverImage: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const book =  await Book.findById(req.params.id);
+    if (book){
+        const coverImg = book.coverImg;
+        res.setHeader("Content-Type", coverImg.mimeType.toString())
+        res.sendFile(coverImg.path.toString(), {root: __dirname+"/../../"});
+    } else {
+        res.status(404).json({msg:"not found"})
+    }
+
+};
+
 
 export const getLibrary: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const limit = req.query.limit ? Number(req.query.limit) : 5;

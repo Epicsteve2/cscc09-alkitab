@@ -88,11 +88,16 @@ export async function sendEpubFile(username: string, epubFile: File) {
 
 interface BookList {
   _id: string;
-  user: string;
-  sharedUsers: any[];
-  bookPost: string;
-  title: string;
-  numPages: number;
+  pages: Array<String>;
+	user: String;
+	bookPost: String;
+	numPages: Number;
+	title: String;
+	coverImg: {
+		id: String,
+		mimeType: String,
+		path: String,
+	}
   createdAt: string;
   updatedAt: string;
   __v: number;
