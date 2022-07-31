@@ -1,7 +1,6 @@
 import * as linode from "@pulumi/linode";
 
-// Just create this by hand...
-
+// Just create these by hand...
 const alkitabDomain = new linode.Domain("alkitabDomain", {
   type: "master",
   domain: "cscc09-alkitab.ninja",
@@ -17,7 +16,7 @@ const alkitabDomainRecord = new linode.DomainRecord("alkitabDomainRecord", {
   target: " cscc09-alkitab.ninja",
 });
 
-const my_cluster = new linode.LkeCluster("alkitab-cluster", {
+const alkitabCluster = new linode.LkeCluster("alkitab-cluster", {
   k8sVersion: "1.23",
   label: "alkitab",
   pools: [

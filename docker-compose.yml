@@ -8,8 +8,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
       MONGO_INITDB_DATABASE: books
-    expose:
-      - 27017
+    ports:
+      - 27017:27017
     networks:
       - alkitab
     volumes:
@@ -90,12 +90,9 @@ services:
     image: nginx:1.23-alpine
     depends_on:
       - alkitab-backend
-    networks:
-      - alkitab
     volumes:
       - ./nginx/cors-proxy.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - 8010:80
+    network_mode: "host"
     profiles:
       - develop
 
