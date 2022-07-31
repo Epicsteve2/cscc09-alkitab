@@ -12,7 +12,7 @@ import {
 import { text } from "svelte/internal";
 
 
-const bookId = "62e425d9981f0e92f45864e9";
+const bookId = "62e5d164994df189a5143909";
 let pageNumber = 1;
 
 let promise = getBook(bookId);
@@ -27,8 +27,9 @@ async function getBook(bookId: string): Promise<void> {
         const body = await response.json()
         console.log(body.pages)
         // postProcess(body.pages[0], []);
-        localStorage.setItem('page', JSON.stringify(body.pages[0]));
-        return body.pages
+        const range = JSON.parse(localStorage.getItem('selection'))
+        return postProcess(body.pages[0], range);
+        return (body.pages[0])
         
     } else {
         throw new Error("error");
@@ -118,23 +119,23 @@ const ELEMENT_NODE = 1;
 
 //     }, 15000);
 
-const interval2 = setInterval(() => 
-{   
+// const interval2 = setInterval(() => 
+// {   
 
-    const range = JSON.parse(localStorage.getItem('selection'))
-    const page = localStorage.getItem('page')
-    console.log(range);
+//     const range = JSON.parse(localStorage.getItem('selection'))
+//     const page = localStorage.getItem('page')
+//     console.log(range);
 
-    postProcess(page, range)
+//     postProcess(page, range)
 
-    // restoreSelection(selection)
-    // highlightRange(selection);
-    // console.log("RESTOR")
-    // console.log(selection);
-    // counter += 1
-    // console.log(counter);
-    // console.log(window.getSelection())
-}, 5000);
+//     // restoreSelection(selection)
+//     // highlightRange(selection);
+//     // console.log("RESTOR")
+//     // console.log(selection);
+//     // counter += 1
+//     // console.log(counter);
+//     // console.log(window.getSelection())
+// }, 5000);
 
 
 
@@ -193,18 +194,18 @@ const postProcess = function(HTMLString, range){
         ancestorNode : ancestorNode
     }
 
-    highlightRange(tree, range2);
+    return highlightRange(tree, range2);
 
 }
 
-// Makes and empty Div Element
+// Makes and empty Span Element
 const makeHighlightDiv = function(node){
     let root = node;
     while (nodeId(root) !== "0"){
         root = root.parentNode;
     }
     let highlightDiv = root.clone();
-    highlightDiv.tagName = "DIV"
+    highlightDiv.tagName = "SPAN"
     highlightDiv.rawAttrs = "class=\"highlight\""
     highlightDiv.innerHTML = "";
     return highlightDiv;
@@ -220,13 +221,13 @@ const makeHighlightDiv = function(node){
 *   AFTER HIGHLIGHT: 
 *   _________        _________        _________
 *  |         |      |         |      |         |
-*  | Element | ---> |   Div   | ---> |   Text  |
+*  | Element | ---> |   Span  | ---> |   Text  |
 *  |_________|      |_________|      |_________|
 *
 */
 const highlightNode = function(node){
     if (node.nodeType === TEXT_NODE){
-        // Make an empty Div with class="highlight"
+        // Make an empty Span with class="highlight"
         let highlightDiv = makeHighlightDiv(node);
 
         // Make copy of TextNode, append Div, and switch the child.
@@ -258,9 +259,9 @@ const highlightNodePartial = function(textNode, start, end){
             let middleText = textNode.clone();
             let rightText = textNode.clone();
 
-            leftText.innerHTML = str.substring(0, start)
-            middleText.innerHTML = str.substring(start, end)
-            rightText.innerHTML = str.substring(end, str.length)
+            leftText._rawText = str.substring(0, start)
+            middleText._rawText = str.substring(start, end)
+            rightText._rawText = str.substring(end, str.length)
 
             highlightDiv.appendChild(middleText);
             wrapingDiv.appendChild(leftText)
@@ -270,8 +271,8 @@ const highlightNodePartial = function(textNode, start, end){
             // CASE [TEXT, DIV]
             let leftText = textNode.clone();
             let rightText = textNode.clone();
-            leftText.innerHTML = str.substring(0, start)
-            rightText.innerHTML = str.substring(start, end);
+            leftText._rawText = str.substring(0, start)
+            rightText._rawText = str.substring(start, end);
 
             highlightDiv.appendChild(rightText)
             wrapingDiv.appendChild(leftText)
@@ -280,8 +281,8 @@ const highlightNodePartial = function(textNode, start, end){
             // CASE [DIV, TEXT]
             let leftText = textNode.clone();
             let rightText = textNode.clone();
-            leftText.innerHTML = str.substring(start, end)
-            rightText.innerHTML = str.substring(end, str.length);
+            leftText._rawText = str.substring(start, end)
+            rightText._rawText = str.substring(end, str.length);
 
             highlightDiv.appendChild(leftText);
             wrapingDiv.appendChild(highlightDiv)
@@ -289,10 +290,13 @@ const highlightNodePartial = function(textNode, start, end){
         } else {
             // CASE [DIV]
             let middleText = textNode.clone()
-            middleText.innerHTML = str;
+            middleText._rawText = str;
             highlightDiv.appendChild(middleText)
             wrapingDiv.appendChild(highlightDiv)
         }
+
+        const parent = textNode.parentNode;
+        parent.exchangeChild(textNode, wrapingDiv);
 
     }
     
@@ -316,6 +320,8 @@ const highlightRange = function(tree, range){
     }   
     
     console.log(tree.toString());
+
+    return (tree.toString());
 
     
 }
@@ -387,10 +393,50 @@ const buildDown = function(startNode, Ancestor, endNode){
 
 
 
+// async function getNextPage(): Promise<void>{
+//     pageNumber += 1;
+//     promise = getBook(bookId)
+// }
 
 
 
+const makeHighlight = function(){
+    
+    console.log(window.getSelection())
+    if (window.getSelection().anchorNode){
+        const range = window.getSelection().getRangeAt(0);
+        let ancestorNode = range.commonAncestorContainer
+        let ancestorNodeId = nodeId(ancestorNode);
+        // if (ancestorNode.getAttribute("class") === "book-page")
+        //     ancestorNodeId = "0";
+        // else 
+        //     ancestorNodeId = ancestorNode.getAttribute("tree-id");
 
+        let startNode = range.startContainer
+        let endNode = range.endContainer
+
+        const condensedRange = {
+            startNode : {
+                nodeId : nodeId(startNode),
+                offset: range.startOffset
+            },
+            endNode : {
+                nodeId : nodeId(endNode),
+                offset : range.endOffset
+            },
+
+            ancestor :{
+                nodeId : ancestorNodeId,
+            }
+        }
+
+        localStorage.setItem('selection', JSON.stringify(condensedRange));
+    } else {
+        console.log("No text selected")
+    }
+    
+
+}
 
 
 
@@ -399,11 +445,20 @@ const buildDown = function(startNode, Ancestor, endNode){
 
 {#await promise}
 	<p>...waiting</p>
-{:then pages}
-<p class="book-page" tree-id="0">{@html pages[0]}</p>
+{:then page}
+<p class="book-page" tree-id="0">{@html page}</p>
 {:catch error}
 	<p style="color: red">{error.message}</p>
 {/await}
 
 <button class="btn btn-warning " type="button" on:click={getNextPage}>
 Next Page</button>
+
+<button class="btn btn-warning " type="button" on:click={makeHighlight}>
+    Highlight</button>
+
+<style lang="scss">
+    :global(.highlight){
+        text-decoration: underline;
+    }
+</style>

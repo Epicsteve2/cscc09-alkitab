@@ -10,6 +10,12 @@ const BookSchema: Schema = new Schema(
 
 		pages: { type: Array<String>, required: true },
 		numPages: { type: Number },
+
+		coverImg: {
+			id : { type: String, required: true},
+			mimeType: { type: String, required: true},
+			path :  { type: String, required: true}
+		}
 	},
 	{
 		timestamps: true
