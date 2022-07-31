@@ -5,7 +5,9 @@ import session from 'express-session';
 import multer from 'multer';
 import socketio from 'socket.io';
 import { Server } from 'socket.io';
-// import cors from 'cors';
+import { createServer } from "http";
+
+import socket from "./socket";
 
 import logging from './middlewares/logging';
 
@@ -77,13 +79,13 @@ app.use(bodyParser.json());
 const upload = multer({ dest: 'uploads/' });
 
 // Sockets
-const usersInBookRoom = new Map();
-const bookRoomOfUser = new Map();
-
-const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>();
-io.on('connection', (socket) => {
-	console.log('connected');
-
+const httpServer = createServer(app);
+const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
+	cors: {
+	  origin: "*",
+	  credentials: true,
+	},
+  });
 	// socket.emit("noArg");
 	// socket.emit("basicEmit", 1, "2", Buffer.from([3]));
 	// socket.emit("withAck", "4", (e) => {
@@ -107,7 +109,7 @@ io.on('connection', (socket) => {
 	// io.emit("noArg");
 
 	// works when broadcasting to a room
-});
+// });
 
 // API Routes
 app.use('/api/users', userRouter);
@@ -136,6 +138,7 @@ db.once('open', () => {
 });
 
 // Creating the server
-app.listen(config.server.port, () => {
+httpServer.listen(config.server.port, () => {
 	logging.info(NAMESPACE, `Server running on ${config.server.hostname}:${config.server.port}`);
+	socket({ io });
 });

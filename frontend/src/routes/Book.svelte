@@ -5,6 +5,14 @@
   import { Spinner } from "sveltestrap";
   import { getBook } from "../api-service";
 
+  import { onMount } from "svelte";
+  import io from "socket.io-client";
+
+  import {
+    ALKITAB_BACKEND_PORT,
+    ALKITAB_BACKEND_URL,
+  } from "../stores";
+
   let pageNumber = parseInt(pageNumberUrl);
   let getBookPromise = getBook(bookId, pageNumber);
 
@@ -19,6 +27,37 @@
       getBookPromise = getBook(bookId, pageNumber);
     }
   }
+
+  onMount(() => {
+    const API_URL = import.meta.env.DEV
+    ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
+    : "";
+
+    const socket = io(API_URL)
+    socket.connect()
+
+    socket.emit("ENTER BOOK ROOM", bookId, "ANDY");
+
+    socket.on("JOINED_ROOM", (json)=>{
+        console.log(`someone of socketId:${json.socketId} and username ${json.user} has joined the room`)
+    })
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
 
 <div
