@@ -13,6 +13,8 @@ libraryRouter.get('/book/:id', libraryController.getBook);
 
 libraryRouter.get('/book/:id/cover', libraryController.getCoverImage);
 
+libraryRouter.get('/book/:bookId/page/:page/highlights', libraryController.getPageHighlights);
+
 libraryRouter.post('/test', upload.fields([{ name: "book", maxCount: 1 }]), libraryController.test);
 
 libraryRouter.get('/', libraryController.getLibrary);
