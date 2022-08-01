@@ -6,6 +6,7 @@ import {
 } from "./stores";
 
 import { navigate } from "svelte-routing";
+import { getAppliedHighlightsPage } from "./processHighlights";
 
 // Use custom URL for development
 const API_URL = import.meta.env.DEV
@@ -130,9 +131,22 @@ export async function getBook(
 
   if (response.ok) {
     const body = await response.json();
+    const page = body.pages[0];
+
+    let pageHighlights:any = await getHighlights(bookId, pageNumber);
+    if (pageHighlights){
+      pageHighlights = pageHighlights.pageHighlights
+    }
+
+    const pageWithHighlights = getAppliedHighlightsPage(pageHighlights, page);
+    const ret = [pageWithHighlights]
+    console.log(ret);
+
+
     navigate(`/library/${bookId}/${pageNumber}`);
     localStorage.setItem('page', body.pages[0])
-    return body.pages;
+    return ret;
+    
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Getting book error", errorMessage);
@@ -170,6 +184,57 @@ export async function whoami(): Promise<Object> {
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("whoami error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+
+
+
+
+// Page Highlights
+export async function getHighlights(bookId, pageNumber): Promise<Object> {
+  const response = await self.fetch(
+    `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/highlights`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const body = await response.json();
+    return body;
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("Logout error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+
+export async function updateHighlights(
+  bookId: string,
+  pageNumber: number,
+  pageHighlights: any,
+) {
+
+  const body = {
+    pageHighlights: pageHighlights
+  };
+
+  const response = await self.fetch(
+    `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/updatehighlights`,
+    { 
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      credentials: "include" }
+  );
+
+  if (response.ok) {
+    
+  } else {
+    let errorMessage: string = await response.text();
+    notifications.addNotification("Failed to get Highlights", errorMessage);
     throw new Error(errorMessage);
   }
 }

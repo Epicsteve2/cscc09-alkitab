@@ -17,7 +17,6 @@ import Book from '../models/book';
 import { fstat } from 'fs';
 import EPub from 'epub';
 import { ChildProcess } from 'child_process';
-import IHighlightRange from '../interfaces/highlights/highlightRange';
 import PageHighlights from '../models/pageHighlights';
 import IPageHighlights from '../interfaces/highlights/pageHighlights';
 
@@ -357,29 +356,39 @@ export const getPageHighlights: RequestHandler = async (req: Request, res: Respo
     const page = req.params.page;
     const pageHighlights = await PageHighlights.findOne({$and : [{bookId : bookId}, {page:page}]});
     if (pageHighlights){
-        res.status(200).json({bookId: bookId, page: page, highlightRanges: pageHighlights.highlights})
+        res.status(200).json({bookId: bookId, page: page, pageHighlights: pageHighlights.highlights})
     } else {
-        res.status(200).json({bookId: bookId, page: page, highlightRanges: []});
+        res.status(200).json({bookId: bookId, page: page, pageHighlights: {}});
     }
         
 }
 
-const addHighlight = async function(bookId:String, page:number, newHighlightRange:IHighlightRange){
+export const handleUpdateHighlight: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const bookId = req.params.bookId;
+    const page = Number(req.params.page);
+    const pageHighlights = req.body.pageHighlights;
+    await updateHighlight(bookId, page, pageHighlights);
+        
+}
+
+const updateHighlight = async function(bookId:String, page:number, updatedPageHighlights:{ [nodeId: string]: Array<Array<Number>> }){
     const pageHighlights = await PageHighlights.findOne({$and : [{bookId : bookId}, {page:page}]});
     if (pageHighlights){
-        pageHighlights.highlights.push(newHighlightRange);
+        pageHighlights.highlights = updatedPageHighlights;
+        await pageHighlights.save()
 
     } else {
         const newPageHighlights = new PageHighlights({
             bookId : bookId,
             page : page,
-            highlights: [newHighlightRange]
+            highlights: updatedPageHighlights
         })
 
         await newPageHighlights.save()
         // res.status(200).json({msg: "highlight for page has been saved"})
     }
 }
+
 
 
 

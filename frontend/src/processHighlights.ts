@@ -1,64 +1,9 @@
-<script lang="ts">
-  export let bookId: string;
-  export let pageNumberUrl: string;
-
-  import { Spinner } from "sveltestrap";
-  import { getBook, updateHighlights} from "../api-service";
-
-  import { onMount } from "svelte";
-  import io from "socket.io-client";
-
-  import { parse } from 'node-html-parser';
-  import mergeRanges from 'merge-ranges';
-
-  import {
-    ALKITAB_BACKEND_PORT,
-    ALKITAB_BACKEND_URL,
-  } from "../stores";
-
-  let pageNumber = parseInt(pageNumberUrl);
-  let getBookPromise = getBook(bookId, pageNumber);
-
-  async function getNextPage(): Promise<void> {
-    pageNumber += 1;
-    getBookPromise = getBook(bookId, pageNumber);
-  }
-
-  async function getPreviousPage(): Promise<void> {
-    if (pageNumber > 1) {
-      pageNumber -= 1;
-      getBookPromise = getBook(bookId, pageNumber);
-    }
-  }
-
-  onMount(() => {
-    const API_URL = import.meta.env.DEV
-    ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
-    : "";
-
-    const socket = io(API_URL)
-    socket.connect()
-
-    socket.emit("ENTER BOOK ROOM", bookId, "ANDY");
-
-    socket.on("JOINED_ROOM", (json)=>{
-        console.log(`someone of socketId:${json.socketId} and username ${json.user} has joined the room`)
-    })
-
-
-})
 
 
 
 
-
-
-
-
-
-
-
-
+import { parse } from 'node-html-parser';
+import mergeRanges from 'merge-ranges';
 
 const TEXT_NODE = 3;
 const ELEMENT_NODE = 1;
@@ -293,7 +238,95 @@ const mergeHighlights = function (pageHighlights, range, HTMLpage){
 
 }
 
-const addHighlights = function(pageHighlights, page){
+// const addHighlights = function(pageHighlights, page){
+//     const tree = parse(page);
+//     for (var nodeId in pageHighlights){
+//         const textNode = getNodebyId(tree, nodeId);
+//         const str = textNode.textContent;
+
+//         const parentNode = textNode.parentNode;
+//         const spanWrapper = makeHighlightSpan(textNode)
+//         spanWrapper.rawAttrs = "";
+
+//         const sortedIntervals = pageHighlights[nodeId].sort(([a, b], [c, d]) => c - a || b - d);
+
+//         // thrid Index marks highlight or non. 1 = yes, 0 = no
+//         const labledSortedIntervals = sortedIntervals.map(interval => [...interval, 1])
+//         let allInvtervals = []
+
+//         // nonHighlight Intervals between highlighted intervals
+//         let i = 0;
+//         while (i !== labledSortedIntervals.length){
+//             allInvtervals.push(labledSortedIntervals[i])
+//             if (i+1 !== labledSortedIntervals.length){
+//                 const nonHighlightInterval = [labledSortedIntervals[i][1], labledSortedIntervals[i+1][0], 0]
+//                 allInvtervals.push(nonHighlightInterval);
+//             }
+//             i++;
+//         }
+
+//         // nonHighlighted intervals at the start/end
+//         const firstInteval = labledSortedIntervals[0];
+//         if (firstInteval[0] !== 0){
+//             const nonHighlightInterval = [0, firstInteval[0], 0]
+//             allInvtervals.unshift(nonHighlightInterval)
+//         }
+
+//         const lastInterval = labledSortedIntervals[labledSortedIntervals.length - 1];
+//         if (lastInterval[1] !== str.length){
+//             const nonHighlightInterval = [lastInterval[1], str.length, 0]
+//             allInvtervals.push(nonHighlightInterval)
+//         }
+
+//         console.log("FOR ID " + nodeId);
+//         console.log(allInvtervals);
+
+        
+//         // Convert Intervals into Nodes and add to spanWrapper
+//         allInvtervals.forEach(interval => {
+//             if (interval[2] === 1){
+//                 //Highlight Interval
+//                 const highlightSpan = makeHighlightSpan(textNode);
+//                 const newTextNode = textNode.clone();
+//                 newTextNode.textContent = str.substring(interval[0], interval[1])
+
+//                 highlightSpan.appendChild(newTextNode);
+//                 spanWrapper.appendChild(highlightSpan);
+//             }
+
+//             if (interval[2] === 0){
+//                 // Plain Interval
+//                 const newTextNode = textNode.clone();
+//                 newTextNode.textContent = str.substring(interval[0], interval[1])
+
+//                 spanWrapper.appendChild(newTextNode);
+//             }
+//         })
+
+        
+        
+//         parentNode.exchangeChild(textNode, spanWrapper)
+        
+//         // spanEle.appendChild(node)
+//     }
+
+//     console.log(tree.toString());
+
+//     async function treeString(tree) {
+//         const arr = []
+//         arr.push(tree.toString())
+//         return arr
+        
+//     };
+
+//     getBookPromise = treeString(tree)
+
+
+// }
+
+
+// The resulting HTML after highlight spans have been added
+export const getAppliedHighlightsPage = function(pageHighlights, page){
     const tree = parse(page);
     for (var nodeId in pageHighlights){
         const textNode = getNodebyId(tree, nodeId);
@@ -333,9 +366,6 @@ const addHighlights = function(pageHighlights, page){
             allInvtervals.push(nonHighlightInterval)
         }
 
-        console.log("FOR ID " + nodeId);
-        console.log(allInvtervals);
-
         
         // Convert Intervals into Nodes and add to spanWrapper
         allInvtervals.forEach(interval => {
@@ -365,119 +395,50 @@ const addHighlights = function(pageHighlights, page){
         // spanEle.appendChild(node)
     }
 
-    console.log(tree.toString());
-
-    async function treeString(tree) {
-        const arr = []
-        arr.push(tree.toString())
-        return arr
-        
-    };
-
-    getBookPromise = treeString(tree)
-
+    return tree.toString()
 
 }
 
-const makeHighlight = function(){
+// const makeHighlight = function(){
     
-    console.log(window.getSelection())
-    if (window.getSelection().anchorNode){
-        const range = window.getSelection().getRangeAt(0);
-        let ancestorNode = range.commonAncestorContainer
-        let ancestorNodeId = nodeId(ancestorNode);
-        // if (ancestorNode.getAttribute("class") === "book-page")
-        //     ancestorNodeId = "0";
-        // else 
-        //     ancestorNodeId = ancestorNode.getAttribute("tree-id");
+//     console.log(window.getSelection())
+//     if (window.getSelection().anchorNode){
+//         const range = window.getSelection().getRangeAt(0);
+//         let ancestorNode = range.commonAncestorContainer
+//         let ancestorNodeId = nodeId(ancestorNode);
+//         // if (ancestorNode.getAttribute("class") === "book-page")
+//         //     ancestorNodeId = "0";
+//         // else 
+//         //     ancestorNodeId = ancestorNode.getAttribute("tree-id");
 
-        let startNode = range.startContainer
-        let endNode = range.endContainer
+//         let startNode = range.startContainer
+//         let endNode = range.endContainer
 
-        const condensedRange = {
-            startNode : {
-                nodeId : nodeId(startNode),
-                offset: range.startOffset
-            },
-            endNode : {
-                nodeId : nodeId(endNode),
-                offset : range.endOffset
-            },
+//         const condensedRange = {
+//             startNode : {
+//                 nodeId : nodeId(startNode),
+//                 offset: range.startOffset
+//             },
+//             endNode : {
+//                 nodeId : nodeId(endNode),
+//                 offset : range.endOffset
+//             },
 
-            ancestor :{
-                nodeId : ancestorNodeId,
-            }
-        }
-        const page = localStorage.getItem('page')
-        mergeHighlights(pageHighlights, condensedRange, page);
-        addHighlights(pageHighlights, page);
+//             ancestor :{
+//                 nodeId : ancestorNodeId,
+//             }
+//         }
+//         const page = localStorage.getItem('page')
+//         mergeHighlights(pageHighlights, condensedRange, page);
+//         addHighlights(pageHighlights, page);
 
-        updateHighlights(bookId, pageNumber, pageHighlights);
+//         updateHighlights(bookId, pageNumber, pageHighlights);
 
 
 
-    } else {
-        console.log("No text selected")
-    }
+//     } else {
+//         console.log("No text selected")
+//     }
     
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-</script>
-
-<div
-  class="container text-centering pt-5 d-flex flex-column"
-  id="book-container"
->
-  <div class="" tree-id="0" >
-    {#await getBookPromise}
-      <p>Loading... <Spinner /></p>
-    {:then pages}
-      {@html pages[0]}
-    {/await}
-  </div>
-  <div
-    class="pt-auto mt-auto mb-4 d-flex justify-content-between align-items-center"
-  >
-    <button
-      disabled={pageNumber <= 1}
-      class="btn btn-warning"
-      type="button"
-      on:click={getPreviousPage}
-    >
-      Previous Page</button
-    >
-    <p class="mt-auto mb-0">Page: {pageNumber}/idk lol</p>
-    <button class="btn btn-warning" type="button" on:click={getNextPage}>
-      Next Page</button
-    >
-
-    <button class="btn btn-warning " type="button" on:click={makeHighlight}>
-        Highlight</button>
-
-  </div>
-</div>
-
-<style lang="scss">
-  #book-container {
-    min-height: 87vh;
-  }
-
-  :global(.highlight){
-        text-decoration: underline;
-    }
-
-
-</style>
+// }
