@@ -173,9 +173,35 @@ export async function whoami(): Promise<Object> {
   }
 }
 
-export default interface BookPostInterface {
-  bookName: Array<String>;
-  numberOfOwners: Number;
+export interface BookPostInterface {
+  _id: string;
+  bookName: string;
+  numberOfOwners: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export async function addBookPost(
+  bookName: string
+): Promise<{ newPosting: object }> {
+  const response = await self.fetch(`${API_URL}/api/users/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookName: bookName,
+    }),
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const addBookPostResponse = await response.json();
+    return addBookPostResponse;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("Adding book post error", errorMessage);
+    throw new Error(errorMessage);
+  }
 }
 
 export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
@@ -187,6 +213,48 @@ export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
   } else {
     const errorMessage: string = await response.text();
     notifications.addNotification("get book posts error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function shareBook(
+  bookId: string,
+  sharee: string,
+  sharer?: string
+): Promise<{ msg: string }> {
+  const response = await fetch(`${API_URL}/api/sharedbooks/share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookId: bookId,
+      sharee: sharee,
+      ...(sharer && { sharee: sharer }),
+    }),
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const shareBookResponse = await response.json();
+    return shareBookResponse;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("share book posts error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getSharedBooks(
+  user?: string
+): Promise<{ books: [string] }> {
+  const queryParams = user ? `?user=${user}` : "";
+  const response = await fetch(`${API_URL}/api/sharedbooks${queryParams}`);
+
+  if (response.ok) {
+    const sharedBookList = await response.json();
+    return sharedBookList;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("get shared books error", errorMessage);
     throw new Error(errorMessage);
   }
 }
