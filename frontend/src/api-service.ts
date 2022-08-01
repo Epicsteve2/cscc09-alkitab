@@ -86,7 +86,7 @@ export async function sendEpubFile(username: string, epubFile: File) {
   }
 }
 
-interface BookList {
+export interface BookList {
   _id: string;
   pages: Array<String>;
   user: String;
@@ -243,7 +243,7 @@ export async function shareBook(
   }
 }
 
-export async function getSharedBooks(
+export async function getSharedBookIDs(
   user?: string
 ): Promise<{ books: [string] }> {
   const queryParams = user ? `?user=${user}` : "";
@@ -257,4 +257,17 @@ export async function getSharedBooks(
     notifications.addNotification("get shared books error", errorMessage);
     throw new Error(errorMessage);
   }
+}
+
+export async function getAllSharedBooks(user?: string): Promise<[object]> {
+  const sharedBookList = (await getSharedBookIDs(user)).books;
+  console.log({ sharedBookList });
+  let idk = await Promise<BookList[]>.all(
+    sharedBookList.map((bookId) => {
+      fetch(`${API_URL}/api/library/book/${bookId}`);
+    })
+  );
+  console.log({ idk });
+
+
 }

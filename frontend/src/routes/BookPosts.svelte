@@ -3,6 +3,8 @@
 
   import { getBookPosts } from "../api-service";
 
+  import { BookList } from "../api-service";
+
   let getBookPostsPromise = getBookPosts();
 </script>
 

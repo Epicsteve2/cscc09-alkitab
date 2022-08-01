@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Col, Container, Row, Button } from "sveltestrap";
   import { Link } from "svelte-routing";
-  import { getSharedBooks, API_URL } from "../api-service";
+  import { getSharedBookIDs, API_URL, getAllSharedBooks } from "../api-service";
 
   import {
     ALKITAB_BACKEND_PORT,
@@ -70,9 +70,16 @@
     color="warning"
     class="mt-3"
     on:click={async () => {
-      const sharedBookList = await getSharedBooks();
+      const sharedBookList = await getSharedBookIDs($currentUser);
       console.log({ sharedBookList });
-    }}>Test getSharedBooks</Button
+    }}>Test getSharedBookIDs</Button
+  >
+  <Button
+    color="warning"
+    class="mt-3"
+    on:click={async () => {
+      const sharedBookList = await getAllSharedBooks($currentUser);
+    }}>Test getAllSharedBooks</Button
   >
   <!-- <Row>
     <Col>.col</Col>
