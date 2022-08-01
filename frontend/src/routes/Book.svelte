@@ -3,7 +3,8 @@
   export let pageNumberUrl: string;
 
   import { Spinner } from "sveltestrap";
-  import { getBook, updateHighlights} from "../api-service";
+  import { getBook, updateHighlights, API_URL} from "../api-service";
+  
 
   import { onMount } from "svelte";
   import io from "socket.io-client";
@@ -32,12 +33,8 @@
   }
 
   onMount(() => {
-    const API_URL = import.meta.env.DEV
-    ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
-    : "";
-
-    const socket = io(API_URL)
-    socket.connect()
+    const socket = io(API_URL);
+    socket.connect();
 
     socket.emit("ENTER BOOK ROOM", bookId, "ANDY");
 

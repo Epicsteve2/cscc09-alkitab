@@ -65,6 +65,13 @@
       notifications.addNotification("Test", "Please work");
     }}>Test add notification</Button
   >
+  <Button
+    color="warning"
+    class="mt-3"
+    on:click={() => {
+      console.log("Placeholder");
+    }}>Test nothing</Button
+  >
   <!-- <Row>
     <Col>.col</Col>
   </Row>

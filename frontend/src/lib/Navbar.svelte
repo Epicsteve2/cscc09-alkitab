@@ -45,6 +45,9 @@
         <NavItem class="px-2">
           <Link to="/test" class="nav-link">Test Page</Link>
         </NavItem>
+        <NavItem class="px-2">
+          <Link to="/book-posts" class="nav-link">Book Posts</Link>
+        </NavItem>
       </Nav>
       <Nav navbar>
         <NavItem class="px-2">
