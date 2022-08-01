@@ -104,6 +104,12 @@
       tag="a"
       >Rewrite for NGINX-ingress
     </ListGroupItem>
+    <ListGroupItem
+      color="warning"
+      href="https://stackoverflow.com/questions/37287153/how-to-get-images-in-bootstraps-card-to-be-the-same-height-width"
+      action
+      tag="a">Fit images in bootstrap cards</ListGroupItem
+    >
     <!--
     <ListGroupItem
       color="warning"

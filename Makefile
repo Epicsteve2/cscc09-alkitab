@@ -79,3 +79,12 @@ docker-compose/rebuild-frontend: | exists/cmd/docker-compose
 		--no-deps \
 		--build \
 		alkitab-frontend
+
+.PHONY: cors-proxy
+## Runs the cors proxy image
+cors-proxy:
+	@echo "$(GREEN)Running cors proxy image...$(RESETCOLOR)"
+	docker run \
+		--network host \
+		--volume "$$(pwd)/nginx/cors-proxy.conf:/etc/nginx/nginx.conf:ro" \
+		nginx:1.23-alpine

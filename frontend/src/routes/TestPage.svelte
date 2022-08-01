@@ -4,6 +4,8 @@
 
   import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
 
+  import { getBookImage } from "../api-service";
+
   const API_URL = import.meta.env.DEV
     ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
     : "";
@@ -64,6 +66,13 @@
     on:click={() => {
       notifications.addNotification("Test", "Please work");
     }}>Test add notification</Button
+  >
+  <Button
+    color="warning"
+    class="mt-3"
+    on:click={() => {
+      getBookImage("62e7eda6598230a35cf3a5e2");
+    }}>Test get cover image</Button
   >
   <!-- <Row>
     <Col>.col</Col>

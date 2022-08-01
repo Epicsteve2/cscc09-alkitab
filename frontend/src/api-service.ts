@@ -8,7 +8,7 @@ import {
 import { navigate } from "svelte-routing";
 
 // Use custom URL for development
-const API_URL = import.meta.env.DEV
+export const API_URL = import.meta.env.DEV
   ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
   : "";
 
@@ -89,15 +89,15 @@ export async function sendEpubFile(username: string, epubFile: File) {
 interface BookList {
   _id: string;
   pages: Array<String>;
-	user: String;
-	bookPost: String;
-	numPages: Number;
-	title: String;
-	coverImg: {
-		id: String,
-		mimeType: String,
-		path: String,
-	}
+  user: String;
+  bookPost: String;
+  numPages: Number;
+  title: String;
+  coverImg: {
+    id: String;
+    mimeType: String;
+    path: String;
+  };
   createdAt: string;
   updatedAt: string;
   __v: number;
