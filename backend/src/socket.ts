@@ -8,11 +8,13 @@ const EVENTS = {
     ENTER_BOOK_ROOM: "ENTER BOOK ROOM",
     SEND_ROOM_MESSAGE: "SEND_ROOM_MESSAGE",
     JOIN_ROOM: "JOIN_ROOM",
+    UPDATED_HIGHLIGHTS: "UPDATED_HIGHLIGHTS"
   },
   SERVER: {
     ROOMS: "ROOMS",
     JOINED_ROOM: "JOINED_ROOM",
     ROOM_MESSAGE: "ROOM_MESSAGE",
+    NEW_HIGHLIGHTS: "NEW_HIGHLIGHTS"
   },
 };
 
@@ -56,18 +58,18 @@ function socket({ io }: { io: Server }) {
      * When a user sends a room message
      */
 
-    socket.on(
-      EVENTS.CLIENT.SEND_ROOM_MESSAGE,
-      ({ roomId, message, username }) => {
-        const date = new Date();
+    // socket.on(
+    //   EVENTS.CLIENT.SEND_ROOM_MESSAGE,
+    //   ({ roomId, message, username }) => {
+    //     const date = new Date();
 
-        socket.to(roomId).emit(EVENTS.SERVER.ROOM_MESSAGE, {
-          message,
-          username,
-          time: `${date.getHours()}:${date.getMinutes()}`,
-        });
-      }
-    );
+    //     socket.to(roomId).emit(EVENTS.SERVER.ROOM_MESSAGE, {
+    //       message,
+    //       username,
+    //       time: `${date.getHours()}:${date.getMinutes()}`,
+    //     });
+    //   }
+    // );
 
     /*
      * When a user joins a room
@@ -77,6 +79,18 @@ function socket({ io }: { io: Server }) {
 
       socket.emit(EVENTS.SERVER.JOINED_ROOM, roomId);
     });
+
+    /*
+     * When sends pageHighlight Updates
+     */
+    socket.on(EVENTS.CLIENT.UPDATED_HIGHLIGHTS, (bookId, page, pageHighlights) => {
+      logger.info(NAMESPACE, `book: ${bookId} recived update on page: ${page}`);
+      socket.to(bookId).emit(EVENTS.SERVER.NEW_HIGHLIGHTS, {
+        page: page,
+        pageHighlights: pageHighlights
+      });
+    });
+
   });
 }
 

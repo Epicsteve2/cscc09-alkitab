@@ -138,13 +138,14 @@ export async function getBook(
       pageHighlights = pageHighlights.pageHighlights
     }
 
+    localStorage.setItem("page", page);
+    localStorage.setItem("highlights", JSON.stringify(pageHighlights));
+
     const pageWithHighlights = getAppliedHighlightsPage(pageHighlights, page);
     const ret = [pageWithHighlights]
-    console.log(ret);
 
 
     navigate(`/library/${bookId}/${pageNumber}`);
-    localStorage.setItem('page', body.pages[0])
     return ret;
     
   } else {

@@ -7,7 +7,7 @@
   
 
   import { onMount } from "svelte";
-  import io from "socket.io-client";
+  import io, { Socket } from "socket.io-client";
 
   import { parse } from 'node-html-parser';
   import mergeRanges from 'merge-ranges';
@@ -32,18 +32,51 @@
     }
   }
 
+
+
+
+  // Socket 
+  const socket = io(API_URL);
   onMount(() => {
-    const socket = io(API_URL);
-    socket.connect();
+     socket.connect();
+  
+     socket.emit("ENTER BOOK ROOM", bookId, "ANDY");
+  
+     socket.on("JOINED_ROOM", (json)=>{
+         console.log(`someone of socketId:${json.socketId} and username ${json.user} has joined the room`)
+     })
+     
+     // Receiving newHighlights from Room
+     socket.on("NEW_HIGHLIGHTS", (json) => {
+        console.log("new highlights recieved")
+        console.log(json)
+        if (json.page === pageNumber){
+            const updatedHighlights = json.pageHighlights;
+            const page = localStorage.getItem('page');
 
-    socket.emit("ENTER BOOK ROOM", bookId, "ANDY");
+            console.log("UPDATED") 
+            console.log(updatedHighlights);
+             // Update DOM to show new highlights
+            addHighlights(updatedHighlights, page);
 
-    socket.on("JOINED_ROOM", (json)=>{
-        console.log(`someone of socketId:${json.socketId} and username ${json.user} has joined the room`)
-    })
+            // Also save it to localStorage
+            localStorage.setItem('highlights', JSON.stringify(updatedHighlights));
+        }
+
+       
+
+     })
+  })
 
 
-})
+  const sendHighlightsToRoom = function (pageHighlights){
+    console.log("BEING SEND")
+    console.log(bookId, pageNumber, pageHighlights)
+    socket.emit("UPDATED_HIGHLIGHTS", bookId, pageNumber, pageHighlights);
+  }
+
+
+
 
 
 
@@ -282,8 +315,7 @@ const buildDown = function(startNode, Ancestor, endNode, pageHighlight){
 //     promise = getBook(bookId)
 // }
 
-const pageHighlights = {};
-const HTMLpage = ""
+
 const mergeHighlights = function (pageHighlights, range, HTMLpage){
     postProcess(pageHighlights, HTMLpage, range)
     console.log(pageHighlights);
@@ -405,11 +437,29 @@ const makeHighlight = function(){
                 nodeId : ancestorNodeId,
             }
         }
-        const page = localStorage.getItem('page')
+        const page = localStorage.getItem('page');
+        const pageHighlights = JSON.parse(localStorage.getItem('highlights'));
+
+        console.log("highlights")
+        console.log(pageHighlights);
+        console.log(page)
+
+        // Given the highlighted range, updated the pageHighlights
         mergeHighlights(pageHighlights, condensedRange, page);
+
+        
+
+        // Update DOM to show new highlights
         addHighlights(pageHighlights, page);
 
+        // Send updated highlights to server
         updateHighlights(bookId, pageNumber, pageHighlights);
+
+        // Send updated highlights to the room
+        sendHighlightsToRoom(pageHighlights);
+
+        // Also save it to localStorage
+        localStorage.setItem('highlights', JSON.stringify(pageHighlights));
 
 
 
