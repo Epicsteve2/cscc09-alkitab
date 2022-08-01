@@ -25,4 +25,6 @@
 - `pulumi --emoji up`
 - download kube config and set it
   - `export KUBECONFIG=~/Downloads/alkitab-kubeconfig.yaml`
--
+
+...
+- Ok so when deploying a cert. the new temporary ingress won't have it picked up by the load balancer. What I did really quick is edit the config using lens to change the class name to nginx.

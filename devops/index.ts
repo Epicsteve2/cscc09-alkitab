@@ -129,8 +129,8 @@ const backendService = new k8s.core.v1.Service(`${appName}-backend-service`, {
 const certManager = new certmanager.CertManager("cert-manager", {
   installCRDs: true,
   helmOptions: {
-    namespace: "cert-manager",
-    createNamespace: true,
+    namespace: "default",
+    // createNamespace: true,
   },
 });
 
@@ -172,58 +172,80 @@ if (isMinikube) {
     { dependsOn: certManager }
   );
 } else {
-  const clusterIssuer = new k8s.apiextensions.CustomResource(
+  const clusterIssuer = new k8s.yaml.ConfigFile(
     "cluster-issuer",
     {
-      apiVersion: "cert-manager.io/v1",
-      kind: "ClusterIssuer",
-      metadata: {
-        name: "cluster-issuer",
-        namespace: "cert-manager",
-      },
-      spec: {
-        acme: {
-          email: "steve.guo@mail.utoronto.ca",
-          server: "https://acme-staging-v02.api.letsencrypt.org/directory",
-          privateKeySecretRef: {
-            name: "issuer-account-key",
-          },
-          solvers: [
-            {
-              http01: {
-                ingress: {
-                  class: nginx,
-                },
-              },
-            },
-          ],
-        },
-      },
+      file: "yaml/cluster-issuer.yaml",
     },
     { dependsOn: certManager }
   );
 
-  const certificate = new k8s.apiextensions.CustomResource(
+  const certificate = new k8s.yaml.ConfigFile(
     "alkitab-certificate",
     {
-      apiVersion: "cert-manager.io/v1",
-      kind: "Certificate",
-      metadata: {
-        name: "alkitab-certificate",
-        namespace: "cert-manager",
-      },
-      spec: {
-        dnsNames: ["cscc09-alkitab.ninja"],
-        secretName: "alkitab-tls-secret",
-        issuerRef: {
-          name: "cluster-issuer",
-          kind: "ClusterIssuer",
-          group: "cert-manager.io",
-        },
-      },
+      file: "yaml/certificate.yaml",
     },
-    { dependsOn: clusterIssuer }
+    { dependsOn: certManager }
   );
+  // const clusterIssuer = new k8s.apiextensions.CustomResource(
+  //   "cluster-issuer",
+  //   {
+  //     apiVersion: "cert-manager.io/v1",
+  //     kind: "ClusterIssuer",
+  //     metadata: {
+  //       name: "cluster-issuer",
+  //       namespace: "cert-manager",
+  //     },
+  //     spec: {
+  //       acme: {
+  //         email: "steve.guo@mail.utoronto.ca",
+  //         server: "https://acme-staging-v02.api.letsencrypt.org/directory",
+  //         privateKeySecretRef: {
+  //           name: "issuer-account-key",
+  //         },
+  //         solvers: [
+  //           {
+  //             http01: {
+  //               ingress: {
+  //                 // serviceType: "ClusterIP",
+  //                 // ingressTemplate: {
+  //                 //   metadata: {
+  //                 //     annotations: {
+  //                 //       "kubernetes.io/ingress.class": "nginx",
+  //                 //     },
+  //                 //   },
+  //                 // },
+  //                 class: "nginx",
+  //               },
+  //             },
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   },
+  //   { dependsOn: certManager }
+  // );
+  // const certificate = new k8s.apiextensions.CustomResource(
+  //   "alkitab-certificate",
+  //   {
+  //     apiVersion: "cert-manager.io/v1",
+  //     kind: "Certificate",
+  //     metadata: {
+  //       name: "alkitab-certificate",
+  //       namespace: "cert-manager",
+  //     },
+  //     spec: {
+  //       dnsNames: ["www.cscc09-alkitab.ninja"],
+  //       secretName: "alkitab-tls-secret",
+  //       issuerRef: {
+  //         name: "cluster-issuer",
+  //         kind: "ClusterIssuer",
+  //         group: "cert-manager.io",
+  //       },
+  //     },
+  //   },
+  //   { dependsOn: clusterIssuer }
+  // );
 }
 
 // Next, expose the app using an Ingress.
@@ -235,13 +257,17 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
       "nginx.ingress.kubernetes.io/proxy-body-size": "0",
       "nginx.ingress.kubernetes.io/proxy-read-timeout": "600",
       "nginx.ingress.kubernetes.io/proxy-send-timeout": "600",
+      // "acme.cert-manager.io/http01-edit-in-place": "true",
+      // "cert-manager.io/issue-temporary-certificate": "true",
       ...(isMinikube && {
         "cert-manager.io/cluster-issuer": "self-signed-cluster-issuer",
         // This is only needed for minikube I think
         "nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
       }),
+      // "nginx.ingress.kubernetes.io/ssl-redirect": "false",
+
       ...(!isMinikube && {
-        "cert-manager.io/cluster-issuer": "cluster-issuer",
+        "cert-manager.io/cluster-issuer": "letsencrypt",
       }),
     },
   },
@@ -252,17 +278,19 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
         port: { number: 80 },
       },
     },
+    // ingressClassName: "nginx",
+
     ...(!isMinikube && {
       tls: [
         {
-          hosts: ["cscc09-alkitab.ninja"],
-          // secretName: "alkitab-tls-secret", // I don't think I need...
+          hosts: ["www.cscc09-alkitab.ninja"],
+          secretName: "alkitab-tls-secret", // I don't think I need...
         },
       ],
     }),
     rules: [
       {
-        ...(!isMinikube && { host: "cscc09-alkitab.ninja" }),
+        ...(!isMinikube && { host: "www.cscc09-alkitab.ninja" }),
         http: {
           paths: [
             {
@@ -303,24 +331,25 @@ const portainer = new k8s.helm.v3.Chart("portainer", {
       ...(!isMinikube && {
         tls: [
           {
-            hosts: ["cscc09-alkitab.ninja"],
+            hosts: ["www.cscc09-alkitab.ninja"],
             secretName: "alkitab-tls-secret",
           },
         ],
       }),
 
       enabled: true,
-      ingressClassName: "nginx",
+      ingressClassName: "nginx", // THIS IS NEEDED!
       annotations: {
         "nginx.ingress.kubernetes.io/rewrite-target": "/$2",
         ...(!isMinikube && {
-          "cert-manager.io/cluster-issuer": "cluster-issuer",
+          "cert-manager.io/cluster-issuer": "letsencrypt",
         }),
+
+        // "nginx.ingress.kubernetes.io/ssl-redirect": "false",
       },
       hosts: [
         {
-          ...(!isMinikube && { host: "cscc09-alkitab.ninja" }),
-
+          ...(!isMinikube && { host: "www.cscc09-alkitab.ninja" }),
           paths: [
             {
               path: "/portainer(/|$)(.*)",
