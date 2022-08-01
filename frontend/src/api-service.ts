@@ -122,7 +122,7 @@ export async function getBooks(): Promise<BookList[]> {
 export async function getBook(
   bookId: string,
   pageNumber: number
-): Promise<void> {
+) {
   const response = await self.fetch(
     `${API_URL}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
     { method: "GET", credentials: "include" }
@@ -131,6 +131,7 @@ export async function getBook(
   if (response.ok) {
     const body = await response.json();
     navigate(`/library/${bookId}/${pageNumber}`);
+    localStorage.setItem('page', body.pages[0])
     return body.pages;
   } else {
     let errorMessage: string = await response.text();
