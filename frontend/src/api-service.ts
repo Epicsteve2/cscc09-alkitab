@@ -163,12 +163,30 @@ export async function whoami(): Promise<Object> {
   });
 
   if (response.ok) {
-    let getCurrentUser = await response.json();
+    const getCurrentUser = await response.json();
     currentUser.set(getCurrentUser.user || "");
     return getCurrentUser;
   } else {
-    let errorMessage: string = await response.text();
+    const errorMessage: string = await response.text();
     notifications.addNotification("whoami error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export default interface BookPostInterface {
+  bookName: Array<String>;
+  numberOfOwners: Number;
+}
+
+export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
+  const response = await fetch(`${API_URL}/api/bookpost/`);
+
+  if (response.ok) {
+    const bookPostList = await response.json();
+    return bookPostList;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("get book posts error", errorMessage);
     throw new Error(errorMessage);
   }
 }
