@@ -66,11 +66,11 @@ Get the all the books shared to the user
 
 # Book Posts
 ## interface (BookPost):
-> {
-    _id: string
-    bookName: string
-    numberOfOwners: number
-}
+> { \
+>    _id: string \
+>    bookName: string \
+>    numberOfOwners: number \
+> }
 
 
 ## GET: /api/bookpost/
