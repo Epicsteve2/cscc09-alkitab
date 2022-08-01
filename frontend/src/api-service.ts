@@ -87,7 +87,7 @@ export async function sendEpubFile(username: string, epubFile: File) {
   }
 }
 
-interface BookList {
+export interface BookList {
   _id: string;
   pages: Array<String>;
   user: String;
@@ -147,7 +147,7 @@ export async function getBook(
 
     navigate(`/library/${bookId}/${pageNumber}`);
     return ret;
-    
+
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Getting book error", errorMessage);
@@ -224,7 +224,7 @@ export async function updateHighlights(
 
   const response = await self.fetch(
     `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/updatehighlights`,
-    { 
+    {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -232,16 +232,42 @@ export async function updateHighlights(
   );
 
   if (response.ok) {
-    
+
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Failed to get Highlights", errorMessage);
     throw new Error(errorMessage);
   }
 }
-export default interface BookPostInterface {
-  bookName: Array<String>;
-  numberOfOwners: Number;
+
+export interface BookPostInterface {
+  _id: string;
+  bookName: string;
+  numberOfOwners: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export async function addBookPost(
+  bookName: string
+): Promise<{ newPosting: object }> {
+  const response = await self.fetch(`${API_URL}/api/users/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookName: bookName,
+    }),     credentials: "include",
+  });
+
+  if (response.ok) {
+    const addBookPostResponse = await response.json();
+    return addBookPostResponse;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("Adding book post error", errorMessage);
+    throw new Error(errorMessage);
+  }
 }
 
 export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
@@ -255,4 +281,59 @@ export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
     notifications.addNotification("get book posts error", errorMessage);
     throw new Error(errorMessage);
   }
+}
+
+export async function shareBook(
+  bookId: string,
+  sharee: string,
+  sharer?: string
+): Promise<{ msg: string }> {
+  const response = await fetch(`${API_URL}/api/sharedbooks/share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookId: bookId,
+      sharee: sharee,
+      ...(sharer && { sharee: sharer }),
+    }),
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const shareBookResponse = await response.json();
+    return shareBookResponse;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("share book posts error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getSharedBookIDs(
+  user?: string
+): Promise<{ books: [string] }> {
+  const queryParams = user ? `?user=${user}` : "";
+  const response = await fetch(`${API_URL}/api/sharedbooks${queryParams}`);
+
+  if (response.ok) {
+    const sharedBookList = await response.json();
+    return sharedBookList;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("get shared books error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getAllSharedBooks(user?: string): Promise<[object]> {
+  const sharedBookList = (await getSharedBookIDs(user)).books;
+  console.log({ sharedBookList });
+  let idk = await Promise<BookList[]>.all(
+    sharedBookList.map((bookId) => {
+      fetch(`${API_URL}/api/library/book/${bookId}`);
+    })
+  );
+  console.log({ idk });
+
+    throw Error()
 }
