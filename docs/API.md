@@ -32,6 +32,15 @@ Returns a Img file: cover image for specified book
 
 
 
+
+\
+\
+\
+\
+\
+\
+
+
 # Sharing Books
 
 ## POST: /api/sharedbooks/share
@@ -46,6 +55,14 @@ share a book from 1 user to another
 Get the all the books shared to the user
 - Query
     - **user:** for which you want to get shared books *(if not logged in)
+
+
+\
+\
+\
+\
+\
+
 
 # Book Posts
 ## interface (BookPost):
