@@ -11,6 +11,8 @@ libraryRouter.post('/book2', upload.fields([{ name: "book", maxCount: 1 }]), lib
 
 libraryRouter.get('/book/:id', libraryController.getBook);
 
+libraryRouter.get('/book/:id/details', libraryController.getBookDetails);
+
 libraryRouter.get('/book/:id/cover', libraryController.getCoverImage);
 
 libraryRouter.get('/book/:bookId/page/:page/highlights', libraryController.getPageHighlights);

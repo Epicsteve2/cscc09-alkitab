@@ -328,6 +328,19 @@ export const getBook: RequestHandler = async (req: Request, res: Response, next:
 
 };
 
+export const getBookDetails: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const bookId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
+
+    const book =  await Book.findById(bookId).select("-pages");
+    if (book){
+        res.status(200).json({book: book});
+    } else {
+        res.status(404).json({msg:"not found"})
+    }
+
+};
+
 export const getCoverImage: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const book =  await Book.findById(req.params.id);
     if (book){
