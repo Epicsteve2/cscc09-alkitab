@@ -20,7 +20,6 @@
 <Router {url}>
   <div class="fluid-container d-flex flex-column min-vh-100">
     <AlkitabNavbar />
-    <Notifications />
 
     <Route path="test" component={TestPage} />
     <Route path="/" component={Bookshelf} />
@@ -36,6 +35,7 @@
 
     <Footer />
   </div>
+  <Notifications />
 </Router>
 
 <style lang="scss">

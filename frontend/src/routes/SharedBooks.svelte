@@ -2,8 +2,14 @@
   import { Container, Spinner } from "sveltestrap";
   import { getSharedBooks } from "../api-service";
   import { currentUser } from "../stores";
+  import BookCard from "../lib/BookCard.svelte";
+  import { onMount } from "svelte";
 
-  let getSharedBooksPromise = getSharedBooks($currentUser);
+  let getSharedBooksPromise;
+
+  getSharedBooksPromise = getSharedBooks($currentUser);
+  // onMount(() => {
+  // });
 </script>
 
 <Container>
@@ -11,11 +17,11 @@
   {#await getSharedBooksPromise}
     <h3>Loading books posts... <Spinner /></h3>
   {:then sharedBooksList}
-    {#each sharedBooksList.books as sharedBook}
-      <div>
-        <p>Book ID: {sharedBook}</p>
-      </div>
-    {/each}
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+      {#each sharedBooksList.books as book}
+        <BookCard {book} sharedBy={book.user} />
+      {/each}
+    </div>
   {/await}
 </Container>
 

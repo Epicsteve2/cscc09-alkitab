@@ -1,11 +1,32 @@
 <script lang="ts">
+  export let book: BookList;
+  export let sharedBy: String = "";
+
   import { links } from "svelte-routing";
-  import { Container, Spinner } from "sveltestrap";
+  import {
+    Spinner,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownToggle,
+    Button,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
+  } from "sveltestrap";
 
-  import { currentUser } from "../stores";
-  import { getBooks, API_URL } from "../api-service";
+  import { currentUser, notifications } from "../stores";
+  import { API_URL, BookList, shareBook } from "../api-service";
 
-  let getBooksPromise = getBooks();
+  let isModalOpen = false;
+  function toggleModal() {
+    isModalOpen = !isModalOpen;
+  }
+
+  let shareeUsername = "";
+
+  let shareBookPromise: Promise<Object> = Promise.resolve("");
 </script>
 
 <div class="col">
@@ -29,7 +50,55 @@
             {new Date(book.createdAt).toLocaleString()}
           </p>
           <p class="card-text">
-            Number of pages: {book.numPages}
+            <b>Number of pages</b>: {book.numPages}
+            {#if sharedBy}
+              <br /><b>Shared by</b>: {sharedBy}
+            {/if}
+            <Dropdown class="position-absolute end-0 top-0">
+              <DropdownToggle tag="div" class="d-inline-block">
+                <div class="triple-dot p-1" />
+              </DropdownToggle>
+              <DropdownMenu>
+                <DropdownItem on:click={toggleModal}>Share Book</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+            <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+              <ModalHeader toggle={toggleModal}
+                >Share <i>{book.title}</i></ModalHeader
+              >
+              <ModalBody>
+                Enter the username of who you want to share this book with
+                <input
+                  class="form-control my-3"
+                  type="text"
+                  bind:value={shareeUsername}
+                />
+              </ModalBody>
+              <ModalFooter>
+                {#await shareBookPromise}
+                  <Spinner size="sm" />
+                {/await}
+                <Button
+                  color="primary"
+                  on:click={async () => {
+                    shareBookPromise = shareBook(
+                      book._id,
+                      shareeUsername,
+                      $currentUser
+                    );
+
+                    shareBookPromise.then(() => {
+                      notifications.addNotification(
+                        "Share book",
+                        "Book has been successfully shared!"
+                      );
+                      toggleModal();
+                    });
+                  }}>Share</Button
+                >
+                <Button color="secondary" on:click={toggleModal}>Cancel</Button>
+              </ModalFooter>
+            </Modal>
           </p>
         </div>
         <a
@@ -47,5 +116,9 @@
     width: 100%;
     height: 13vw;
     object-fit: cover;
+  }
+
+  .triple-dot:after {
+    content: "\2807";
   }
 </style>

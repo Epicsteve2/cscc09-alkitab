@@ -120,10 +120,7 @@ export async function getBooks(): Promise<BookList[]> {
   }
 }
 
-export async function getBook(
-  bookId: string,
-  pageNumber: number
-) {
+export async function getBook(bookId: string, pageNumber: number) {
   const response = await self.fetch(
     `${API_URL}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
     { method: "GET", credentials: "include" }
@@ -133,21 +130,19 @@ export async function getBook(
     const body = await response.json();
     const page = body.pages[0];
 
-    let pageHighlights:any = await getHighlights(bookId, pageNumber);
-    if (pageHighlights){
-      pageHighlights = pageHighlights.pageHighlights
+    let pageHighlights: any = await getHighlights(bookId, pageNumber);
+    if (pageHighlights) {
+      pageHighlights = pageHighlights.pageHighlights;
     }
 
     localStorage.setItem("page", page);
     localStorage.setItem("highlights", JSON.stringify(pageHighlights));
 
     const pageWithHighlights = getAppliedHighlightsPage(pageHighlights, page);
-    const ret = [pageWithHighlights]
-
+    const ret = [pageWithHighlights];
 
     navigate(`/library/${bookId}/${pageNumber}`);
     return ret;
-
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Getting book error", errorMessage);
@@ -189,17 +184,15 @@ export async function whoami(): Promise<Object> {
   }
 }
 
-
-
-
-
 // Page Highlights
 export async function getHighlights(bookId, pageNumber): Promise<Object> {
   const response = await self.fetch(
-    `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/highlights`, {
-    method: "GET",
-    credentials: "include",
-  });
+    `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/highlights`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
 
   if (response.ok) {
     const body = await response.json();
@@ -211,15 +204,13 @@ export async function getHighlights(bookId, pageNumber): Promise<Object> {
   }
 }
 
-
 export async function updateHighlights(
   bookId: string,
   pageNumber: number,
-  pageHighlights: any,
+  pageHighlights: any
 ) {
-
   const body = {
-    pageHighlights: pageHighlights
+    pageHighlights: pageHighlights,
   };
 
   const response = await self.fetch(
@@ -228,11 +219,11 @@ export async function updateHighlights(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      credentials: "include" }
+      credentials: "include",
+    }
   );
 
   if (response.ok) {
-
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Failed to get Highlights", errorMessage);
@@ -257,7 +248,8 @@ export async function addBookPost(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       bookName: bookName,
-    }),     credentials: "include",
+    }),
+    credentials: "include",
   });
 
   if (response.ok) {
@@ -294,7 +286,7 @@ export async function shareBook(
     body: JSON.stringify({
       bookId: bookId,
       sharee: sharee,
-      ...(sharer && { sharee: sharer }),
+      ...(sharer && { sharer: sharer }),
     }),
     credentials: "include",
   });
@@ -309,9 +301,9 @@ export async function shareBook(
   }
 }
 
-export async function getSharedBookIDs(
+export async function getSharedBooks(
   user?: string
-): Promise<{ books: [string] }> {
+): Promise<{ books: BookList[] }> {
   const queryParams = user ? `?user=${user}` : "";
   const response = await fetch(`${API_URL}/api/sharedbooks${queryParams}`);
 
@@ -323,17 +315,4 @@ export async function getSharedBookIDs(
     notifications.addNotification("get shared books error", errorMessage);
     throw new Error(errorMessage);
   }
-}
-
-export async function getAllSharedBooks(user?: string): Promise<[object]> {
-  const sharedBookList = (await getSharedBookIDs(user)).books;
-  console.log({ sharedBookList });
-  let idk = await Promise<BookList[]>.all(
-    sharedBookList.map((bookId) => {
-      fetch(`${API_URL}/api/library/book/${bookId}`);
-    })
-  );
-  console.log({ idk });
-
-    throw Error()
 }

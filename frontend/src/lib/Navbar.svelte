@@ -40,16 +40,13 @@
           <Link to="/add-books" class="nav-link">Add books</Link>
         </NavItem>
         <NavItem class="px-2">
-          <Link to="/podcasts" class="nav-link">Podcasts</Link>
-        </NavItem>
-        <NavItem class="px-2">
-          <Link to="/test" class="nav-link">Test Page</Link>
-        </NavItem>
-        <NavItem class="px-2">
           <Link to="/book-posts" class="nav-link">Book Posts</Link>
         </NavItem>
         <NavItem class="px-2">
           <Link to="/shared-books" class="nav-link">Shared Books</Link>
+        </NavItem>
+        <NavItem class="px-2">
+          <Link to="/test" class="nav-link">Test Page</Link>
         </NavItem>
       </Nav>
       <Nav navbar>
