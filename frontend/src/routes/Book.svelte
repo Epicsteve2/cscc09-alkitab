@@ -101,11 +101,52 @@ const nodeId = function(node){
     else {
         const parent = node.parentNode
         let x = 0;
-        let cur = parent.firstChild;
-        while (cur.textContent !== node.textContent){
+
+        // V1
+        // let cur = parent.firstChild;
+        // while (cur.textContent !== node.textContent){
+        //     x++;
+        //     cur = cur.nextSibling
+        // }
+
+        // V2
+        
+        let cur = node
+        while (getPrevSibling(cur)){
+            cur = getPrevSibling(cur);
             x++;
-            cur = cur.nextSibling
         }
+
+
+
+        return `${parent.getAttribute("tree-id")}-${x}`;
+    }
+}
+
+const nodeId2 = function(node){
+    if (node.nodeType === ELEMENT_NODE) 
+        return node.getAttribute("tree-id")
+
+    else {
+        const parent = node.parentNode
+        let x = 0;
+
+        // V1
+        // let cur = parent.firstChild;
+        // while (cur.textContent !== node.textContent){
+        //     x++;
+        //     cur = cur.nextSibling
+        // }
+
+        // V2
+        
+        let cur = node
+        while (cur.previousSibling){
+            cur = cur.previousSibling;
+            x++;
+        }
+
+
 
         return `${parent.getAttribute("tree-id")}-${x}`;
     }
@@ -250,8 +291,8 @@ const buildUp = function(startNode, commonAncestor, pageHighlight){
 
         if (childContainingStart.length !== 0){
             let curNode = childContainingStart[0];
-            while(curNode.nextSibling){
-                curNode = curNode.nextSibling;
+            while(getNextSibling(curNode)){
+                curNode = getNextSibling(curNode);
                 highlightNodeFull(curNode, pageHighlight);
             }
         }
@@ -270,20 +311,26 @@ const buildDown = function(startNode, Ancestor, endNode, pageHighlight){
         // console.log(endNode);
         // console.log(nodeContainsNode(cur.childNodes[20], endNode));
         // console.log(cur.childNodes[20].toString())
-
-        
+        // const parent = childContainingStart[0].parentNode
+        // let child = parent.firstChild
+        // console.log(child.range)
+        // while (child.nextSibling){
+        //     console.log(child);
+        //     console.log(child.range)
+        //     child = child.nextSibling;
+        // }       
         // console.log(childContainingStart);
         if (childContainingStart.length !== 0){
             let curNode = childContainingStart[0];
             while(nodeId(curNode) !== nodeId(childContainingEnd)){
-                curNode = curNode.nextSibling;
+                curNode = getNextSibling(curNode);
                 if (nodeId(curNode) !== nodeId(childContainingEnd))
                     highlightNodeFull(curNode, pageHighlight);
             }
         } else {
             let curNode = childContainingEnd;
-            while(curNode.previousSibling){
-                curNode = curNode.previousSibling;
+            while(getPrevSibling(curNode)){
+                curNode = getPrevSibling(curNode);
                 highlightNodeFull(curNode, pageHighlight);
             }
         }
@@ -292,6 +339,67 @@ const buildDown = function(startNode, Ancestor, endNode, pageHighlight){
     }
 }
 
+
+
+// Since node.nextSibling only seems to work for Element nodes 
+// and not Text nodes (great...), Custom nextSiblings and Prevsiblings needed
+
+const getNextSibling = function(node){
+    const parent = node.parentNode;
+    const children = parent.childNodes
+
+    // This will be used as the unquie identifier for the node
+    const nodeRange = node.range
+    
+    let i = 0
+    let child = children[0];
+    while(i !== children.length){
+        
+
+        if (child.range[0] === nodeRange[0] && child.range[1] === nodeRange[1]){
+            // Child equals node
+
+            if (i+1 >= children.length) return null
+            return children[i+1];
+        }
+
+        i++;
+        child = children[i]
+    }
+
+    console.log("SHOULD NOT REACH");
+    return null
+}
+
+const getPrevSibling = function(node){
+    
+    const parent = node.parentNode;
+    const children = parent.childNodes
+    console.log(parent)
+    console.log(children)
+
+    // This will be used as the unquie identifier for the node
+    const nodeRange = node.range
+    
+    let i = 0
+    let child = children[0];
+    while(i !== children.length){
+        
+
+        if (child.range[0] === nodeRange[0] && child.range[1] === nodeRange[1]){
+            // Child equals node
+
+            if (i-1 < 0) return null
+            return children[i-1];
+        }
+
+        i++;
+        child = children[i]
+    }
+
+    console.log("SHOULD NOT REACH");
+    return null
+}
 
 
 
@@ -414,7 +522,7 @@ const makeHighlight = function(){
     if (window.getSelection().anchorNode){
         const range = window.getSelection().getRangeAt(0);
         let ancestorNode = range.commonAncestorContainer
-        let ancestorNodeId = nodeId(ancestorNode);
+        let ancestorNodeId = nodeId2(ancestorNode);
         // if (ancestorNode.getAttribute("class") === "book-page")
         //     ancestorNodeId = "0";
         // else 
@@ -425,11 +533,11 @@ const makeHighlight = function(){
 
         const condensedRange = {
             startNode : {
-                nodeId : nodeId(startNode),
+                nodeId : nodeId2(startNode),
                 offset: range.startOffset
             },
             endNode : {
-                nodeId : nodeId(endNode),
+                nodeId : nodeId2(endNode),
                 offset : range.endOffset
             },
 
