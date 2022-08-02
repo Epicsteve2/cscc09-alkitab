@@ -18,8 +18,11 @@ const EVENTS = {
   },
 };
 
-// Maps book to the number of Reading the book
+// Maps book to readers
 const bookRoom: Record<string, Array<string>> = {};
+
+// Maps reader to book
+const whichBook: Record<string, string> = {};
 
 function socket({ io }: { io: Server }) {
   logger.info(NAMESPACE, `Sockets enabled`);
@@ -39,37 +42,29 @@ function socket({ io }: { io: Server }) {
         
 
       socket.join(bookId);
+      whichBook[socket.id] = bookId;
 
+
+      console.log(bookRoom)
       socket.to(bookId).emit(EVENTS.SERVER.JOINED_ROOM, {
         socketId : socket.id,
         user: user
       });
 
-      // // broadcast an event saying there is a new room
-      // socket.broadcast.emit(EVENTS.SERVER.ROOMS, rooms);
-
-      // // emit back to the room creator with all the rooms
-      // socket.emit(EVENTS.SERVER.ROOMS, rooms);
-      // // emit event back the room creator saying they have joined a room
-      // socket.emit(EVENTS.SERVER.JOINED_ROOM, roomId);
     });
 
-    /*
-     * When a user sends a room message
-     */
+    socket.on('disconnect', () => {
+      logger.info(NAMESPACE, `User ${socket.id} left`);
+      const bookId = whichBook[socket.id];
+      if (bookId){
+        socket.leave(bookId);
+        const index = bookRoom[bookId].indexOf(socket.id);
+        bookRoom[bookId].splice(index, 1)
 
-    // socket.on(
-    //   EVENTS.CLIENT.SEND_ROOM_MESSAGE,
-    //   ({ roomId, message, username }) => {
-    //     const date = new Date();
+      }
+    });
 
-    //     socket.to(roomId).emit(EVENTS.SERVER.ROOM_MESSAGE, {
-    //       message,
-    //       username,
-    //       time: `${date.getHours()}:${date.getMinutes()}`,
-    //     });
-    //   }
-    // );
+    
 
     /*
      * When a user joins a room
@@ -92,6 +87,8 @@ function socket({ io }: { io: Server }) {
     });
 
   });
+
+
 }
 
 export default socket;
