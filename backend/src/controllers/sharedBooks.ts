@@ -29,7 +29,7 @@ export const getSharedBooks: RequestHandler = async (req: Request, res: Response
 
 
 
-    return res.status(200).json({books : bookIds})
+    return res.status(200).json({books : books})
 
 
 }

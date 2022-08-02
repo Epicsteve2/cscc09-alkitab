@@ -94,6 +94,7 @@ const TEXT_NODE = 3;
 const ELEMENT_NODE = 1;
 // If Node is Element, tree-id is the Id
 // If Node is TextNode, Id defined as '<parentElement tree-id> - <xth child relative to parent>'
+// Version for Node Object given by html-parser
 const nodeId = function(node){
     if (node.nodeType === ELEMENT_NODE) 
         return node.getAttribute("tree-id")
@@ -123,6 +124,8 @@ const nodeId = function(node){
     }
 }
 
+
+// Version for Node Object given by DOM
 const nodeId2 = function(node){
     if (node.nodeType === ELEMENT_NODE) 
         return node.getAttribute("tree-id")
@@ -438,15 +441,15 @@ const addHighlights = function(pageHighlights, page){
 
         const parentNode = textNode.parentNode;
         const spanWrapper = makeHighlightSpan(textNode)
-        spanWrapper.rawAttrs = "";
+        spanWrapper.rawAttrs = "class=\"wrapper\"";
 
-        const sortedIntervals = pageHighlights[nodeId].sort(([a, b], [c, d]) => c - a || b - d);
-
-        // thrid Index marks highlight or non. 1 = yes, 0 = no
+        const sortedIntervals = pageHighlights[nodeId].sort(([a, b], [c, d]) => a - c || b - d);
+        // thrid Index marks highlight or no-highlight. 1 = yes, 0 = no
         const labledSortedIntervals = sortedIntervals.map(interval => [...interval, 1])
         let allInvtervals = []
 
-        // nonHighlight Intervals between highlighted intervals
+
+        // no-highlight Intervals between highlighted intervals
         let i = 0;
         while (i !== labledSortedIntervals.length){
             allInvtervals.push(labledSortedIntervals[i])
@@ -521,30 +524,71 @@ const makeHighlight = function(){
     console.log(window.getSelection())
     if (window.getSelection().anchorNode){
         const range = window.getSelection().getRangeAt(0);
-        let ancestorNode = range.commonAncestorContainer
-        let ancestorNodeId = nodeId2(ancestorNode);
-        // if (ancestorNode.getAttribute("class") === "book-page")
-        //     ancestorNodeId = "0";
-        // else 
-        //     ancestorNodeId = ancestorNode.getAttribute("tree-id");
 
+        let startNodeId;
+        let startNodeOffset;
+        let endNodeId;
+        let endNodeOffset;
+        let ancestorNodeId;
+
+
+        let ancestorNode:any = range.commonAncestorContainer
         let startNode = range.startContainer
         let endNode = range.endContainer
 
+        
+        // If ancestorNode is a SPAN, the ancestor in the oringinal page would be the parent of spanWrapper
+        if (ancestorNode.nodeType === TEXT_NODE && ancestorNode.parentNode.tagName === "SPAN"){
+            ancestorNodeId = nodeIdSpan(startNode)
+        }
+        else {
+            while (ancestorNode.tagName === "SPAN"){
+                ancestorNode = ancestorNode.parentNode;
+            } 
+            ancestorNodeId = nodeId2(ancestorNode);
+        }
+       
+
+        // Start/End nodes only work with the nonHighlighted pages version
+        // Since the user is selecting on a page with highlights/spans,
+        // we need to convert it as if their selection was being made on a page without spans
+        if (startNode.parentElement.tagName === "SPAN"){
+            console.log(startNode)
+            startNodeOffset = convertSelectionWithoutSpan(startNode, range.startOffset);
+            startNodeId = nodeIdSpan(startNode)
+        } else {
+            startNodeId = nodeId2(startNode);
+            startNodeOffset = range.startOffset
+        }
+
+        if (endNode.parentElement.tagName === "SPAN"){
+            endNodeOffset = convertSelectionWithoutSpan(endNode, range.endOffset);
+            endNodeId = nodeIdSpan(endNode)
+        } else {
+            endNodeId = nodeId2(endNode);
+            endNodeOffset = range.endOffset
+        }
+
+        
+
         const condensedRange = {
             startNode : {
-                nodeId : nodeId2(startNode),
-                offset: range.startOffset
+                nodeId : startNodeId,
+                offset: startNodeOffset
             },
             endNode : {
-                nodeId : nodeId2(endNode),
-                offset : range.endOffset
+                nodeId : endNodeId,
+                offset : endNodeOffset
             },
 
             ancestor :{
                 nodeId : ancestorNodeId,
             }
         }
+
+        console.log("CONDESNT RANGE")
+        console.log(condensedRange);
+
         const page = localStorage.getItem('page');
         const pageHighlights = JSON.parse(localStorage.getItem('highlights'));
 
@@ -554,8 +598,6 @@ const makeHighlight = function(){
 
         // Given the highlighted range, updated the pageHighlights
         mergeHighlights(pageHighlights, condensedRange, page);
-
-        
 
         // Update DOM to show new highlights
         addHighlights(pageHighlights, page);
@@ -576,6 +618,56 @@ const makeHighlight = function(){
     }
     
 
+}
+
+// The span wrapper's id is equal to textNode id in unHighlighted version of the page
+const nodeIdSpan = function(node){
+    let spanWrapper = node.parentNode;
+    while (spanWrapper.getAttribute('class') !== 'wrapper'){
+        spanWrapper = spanWrapper.parentNode
+    }
+
+    const parent = spanWrapper.parentNode
+    let x = 0;
+    
+    let cur = spanWrapper
+    while (cur.previousSibling){
+        cur = cur.previousSibling;
+        x++;
+    }
+    
+    return `${parent.getAttribute("tree-id")}-${x}`;
+}
+
+const convertSelectionWithoutSpan = function(textNode, offset){
+    // Textnode is currently in a span
+    const parent = textNode.parentNode;
+    let spanWrapper;
+    let nodeContainingTextNode;
+    console.log(textNode);
+    console.log(parent.getAttribute('class'))
+    console.log(parent.getAttribute('class'))
+    if (parent.getAttribute('class') === 'wrapper'){
+        spanWrapper = parent;
+        nodeContainingTextNode = textNode;
+    } else if (parent.getAttribute('class') === 'highlight'){
+        spanWrapper = parent.parentNode
+        nodeContainingTextNode = parent;
+    } else {
+        console.log("SHUOLD NOT REACH")
+    }
+
+    let convertedOffset = 0;
+    let child = spanWrapper.firstChild
+    while (!child.isSameNode(nodeContainingTextNode)){
+        convertedOffset += child.textContent.length
+        child = child.nextSibling
+    }
+    convertedOffset += offset;
+
+    return convertedOffset;
+
+    
 }
 
 
