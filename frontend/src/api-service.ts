@@ -226,7 +226,8 @@ export async function updateHighlights(
   if (response.ok) {
   } else {
     let errorMessage: string = await response.text();
-    notifications.addNotification("Failed to get Highlights", errorMessage);
+    // TODO: Temp
+    // notifications.addNotification("Failed to get Highlights", errorMessage);
     throw new Error(errorMessage);
   }
 }
@@ -313,6 +314,21 @@ export async function getSharedBooks(
   } else {
     const errorMessage: string = await response.text();
     notifications.addNotification("get shared books error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getBookDetails(
+  bookId: string
+): Promise<{ book: Object }> {
+  const response = await fetch(`${API_URL}/api/library/book/${bookId}/details`);
+
+  if (response.ok) {
+    const bookDetails = await response.json();
+    return bookDetails;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("get book details error", errorMessage);
     throw new Error(errorMessage);
   }
 }
