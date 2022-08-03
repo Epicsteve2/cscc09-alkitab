@@ -7,7 +7,11 @@ RUN npm clean-install
 COPY . ./
 ARG VITE_ALKITAB_BACKEND_PORT
 ARG VITE_ALKITAB_BACKEND_URL
-RUN npm run build
+# RUN npm run build
+# Ok so the node-html-parser library really confuses vite. Only way I can think of fixing this for now is to do this...
+RUN npm run build -- --target esnext --minify false
+RUN sed -i 's|parse\$1|nhp|g' dist/assets/*.js
+RUN sed -i 's|const nhp = nhp.parse;|const parse\$1 = nhp.parse;|g' dist/assets/*.js
 
 FROM nginx:1.23-alpine
 COPY --from=build /alkitab-frontend/dist /usr/share/nginx/html
