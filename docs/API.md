@@ -57,37 +57,4 @@ Get the all the books shared to the user
     - **user:** for which you want to get shared books *(if not logged in)
 
 
-\
-\
-\
-\
-\
-
-
-# Book Posts
-## interface (BookPost):
-> { \
->    _id: string \
->    bookName: string \
->    numberOfOwners: number \
-> }
-
-
-## GET: /api/bookpost/
-Get bookpostings
-
- 
-## POST: /api/bookpost/create
-Create a new bookposting
-
-- Body
-    - **bookName:** name of the book for this posting
-
-## POST: /api/bookpost/:id/incrmentReaders
-Create a new bookposting
-
-- Params
-    - **id:** id of book post to increment
-
-
 

@@ -31,8 +31,7 @@ function socket({ io }: { io: Server }) {
     logger.info(NAMESPACE, `User connected ${socket.id}`);
 
     // When a user enters a Book
-    socket.on(EVENTS.CLIENT.ENTER_BOOK_ROOM, (bookId, user) => {
-      console.log({bookId});
+    socket.on(EVENTS.CLIENT.ENTER_BOOK_ROOM, (bookId) => {
 
       // If book room is empty, initialize new arr, otherwise, push user into room
       if (bookRoom[bookId])
@@ -43,13 +42,6 @@ function socket({ io }: { io: Server }) {
 
       socket.join(bookId);
       whichBook[socket.id] = bookId;
-
-
-      console.log(bookRoom)
-      socket.to(bookId).emit(EVENTS.SERVER.JOINED_ROOM, {
-        socketId : socket.id,
-        user: user
-      });
 
     });
 
@@ -64,22 +56,13 @@ function socket({ io }: { io: Server }) {
       }
     });
 
-    
-
-    /*
-     * When a user joins a room
-     */
-    socket.on(EVENTS.CLIENT.JOIN_ROOM, (roomId) => {
-      socket.join(roomId);
-
-      socket.emit(EVENTS.SERVER.JOINED_ROOM, roomId);
-    });
 
     /*
      * When sends pageHighlight Updates
      */
     socket.on(EVENTS.CLIENT.UPDATED_HIGHLIGHTS, (bookId, page, pageHighlights) => {
       logger.info(NAMESPACE, `book: ${bookId} recived update on page: ${page}`);
+      
       socket.to(bookId).emit(EVENTS.SERVER.NEW_HIGHLIGHTS, {
         page: page,
         pageHighlights: pageHighlights

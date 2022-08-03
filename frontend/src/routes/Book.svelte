@@ -40,22 +40,14 @@
   onMount(() => {
      socket.connect();
   
-     socket.emit("ENTER BOOK ROOM", bookId, "ANDY");
-  
-     socket.on("JOINED_ROOM", (json)=>{
-         console.log(`someone of socketId:${json.socketId} and username ${json.user} has joined the room`)
-     })
-     
+     socket.emit("ENTER BOOK ROOM", bookId);
+
      // Receiving newHighlights from Room
      socket.on("NEW_HIGHLIGHTS", (json) => {
-        console.log("new highlights recieved")
-        console.log(json)
         if (json.page === pageNumber){
             const updatedHighlights = json.pageHighlights;
             const page = localStorage.getItem('page');
 
-            console.log("UPDATED") 
-            console.log(updatedHighlights);
              // Update DOM to show new highlights
             addHighlights(updatedHighlights, page);
 
@@ -70,8 +62,6 @@
 
 
   const sendHighlightsToRoom = function (pageHighlights){
-    console.log("BEING SEND")
-    console.log(bookId, pageNumber, pageHighlights)
     socket.emit("UPDATED_HIGHLIGHTS", bookId, pageNumber, pageHighlights);
   }
 
