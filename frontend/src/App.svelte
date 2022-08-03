@@ -7,6 +7,7 @@
   import NotFound from "./routes/NotFound.svelte";
   import Book from "./routes/Book.svelte";
   import BookPosts from "./routes/BookPosts.svelte";
+  import SharedBooks from "./routes/SharedBooks.svelte";
 
   import AlkitabNavbar from "./lib/Navbar.svelte";
   import Footer from "./lib/Footer.svelte";
@@ -19,7 +20,6 @@
 <Router {url}>
   <div class="fluid-container d-flex flex-column min-vh-100">
     <AlkitabNavbar />
-    <Notifications />
 
     <Route path="test" component={TestPage} />
     <Route path="/" component={Bookshelf} />
@@ -27,6 +27,7 @@
     <Route path="/login-signup" component={Login} />
     <Route path="/add-books" component={AddBooks} />
     <Route path="/book-posts" component={BookPosts} />
+    <Route path="/shared-books" component={SharedBooks} />
     <Route path="/library/:bookId/:pageNumberUrl" let:params>
       <Book bookId={params.bookId} pageNumberUrl={params.pageNumberUrl} />
     </Route>
@@ -34,6 +35,7 @@
 
     <Footer />
   </div>
+  <Notifications />
 </Router>
 
 <style lang="scss">

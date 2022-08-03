@@ -87,7 +87,7 @@ export async function sendEpubFile(username: string, epubFile: File) {
   }
 }
 
-interface BookList {
+export interface BookList {
   _id: string;
   pages: Array<String>;
   user: String;
@@ -120,10 +120,7 @@ export async function getBooks(): Promise<BookList[]> {
   }
 }
 
-export async function getBook(
-  bookId: string,
-  pageNumber: number
-) {
+export async function getBook(bookId: string, pageNumber: number) {
   const response = await self.fetch(
     `${API_URL}/api/library/book/${bookId}?page=${pageNumber}&limit=1`,
     { method: "GET", credentials: "include" }
@@ -133,21 +130,19 @@ export async function getBook(
     const body = await response.json();
     const page = body.pages[0];
 
-    let pageHighlights:any = await getHighlights(bookId, pageNumber);
-    if (pageHighlights){
-      pageHighlights = pageHighlights.pageHighlights
+    let pageHighlights: any = await getHighlights(bookId, pageNumber);
+    if (pageHighlights) {
+      pageHighlights = pageHighlights.pageHighlights;
     }
 
     localStorage.setItem("page", page);
     localStorage.setItem("highlights", JSON.stringify(pageHighlights));
 
     const pageWithHighlights = getAppliedHighlightsPage(pageHighlights, page);
-    const ret = [pageWithHighlights]
-
+    const ret = [pageWithHighlights];
 
     navigate(`/library/${bookId}/${pageNumber}`);
     return ret;
-    
   } else {
     let errorMessage: string = await response.text();
     notifications.addNotification("Getting book error", errorMessage);
@@ -189,17 +184,15 @@ export async function whoami(): Promise<Object> {
   }
 }
 
-
-
-
-
 // Page Highlights
 export async function getHighlights(bookId, pageNumber): Promise<Object> {
   const response = await self.fetch(
-    `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/highlights`, {
-    method: "GET",
-    credentials: "include",
-  });
+    `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/highlights`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
 
   if (response.ok) {
     const body = await response.json();
@@ -211,37 +204,63 @@ export async function getHighlights(bookId, pageNumber): Promise<Object> {
   }
 }
 
-
 export async function updateHighlights(
   bookId: string,
   pageNumber: number,
-  pageHighlights: any,
+  pageHighlights: any
 ) {
-
   const body = {
-    pageHighlights: pageHighlights
+    pageHighlights: pageHighlights,
   };
 
   const response = await self.fetch(
     `${API_URL}/api/library/book/${bookId}/page/${pageNumber}/updatehighlights`,
-    { 
+    {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      credentials: "include" }
+      credentials: "include",
+    }
   );
 
   if (response.ok) {
-    
   } else {
     let errorMessage: string = await response.text();
-    notifications.addNotification("Failed to get Highlights", errorMessage);
+    // TODO: Temp
+    // notifications.addNotification("Failed to get Highlights", errorMessage);
     throw new Error(errorMessage);
   }
 }
-export default interface BookPostInterface {
-  bookName: Array<String>;
-  numberOfOwners: Number;
+
+export interface BookPostInterface {
+  _id: string;
+  bookName: string;
+  numberOfOwners: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export async function addBookPost(
+  bookName: string
+): Promise<{ newPosting: object }> {
+  const response = await self.fetch(`${API_URL}/api/users/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookName: bookName,
+    }),
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const addBookPostResponse = await response.json();
+    return addBookPostResponse;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("Adding book post error", errorMessage);
+    throw new Error(errorMessage);
+  }
 }
 
 export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
@@ -253,6 +272,63 @@ export async function getBookPosts(): Promise<{ posts: BookPostInterface[] }> {
   } else {
     const errorMessage: string = await response.text();
     notifications.addNotification("get book posts error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function shareBook(
+  bookId: string,
+  sharee: string,
+  sharer?: string
+): Promise<{ msg: string }> {
+  const response = await fetch(`${API_URL}/api/sharedbooks/share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      bookId: bookId,
+      sharee: sharee,
+      ...(sharer && { sharer: sharer }),
+    }),
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const shareBookResponse = await response.json();
+    return shareBookResponse;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("share book posts error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getSharedBooks(
+  user?: string
+): Promise<{ books: BookList[] }> {
+  const queryParams = user ? `?user=${user}` : "";
+  const response = await fetch(`${API_URL}/api/sharedbooks${queryParams}`);
+
+  if (response.ok) {
+    const sharedBookList = await response.json();
+    return sharedBookList;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("get shared books error", errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+export async function getBookDetails(
+  bookId: string
+): Promise<{ book: Object }> {
+  const response = await fetch(`${API_URL}/api/library/book/${bookId}/details`);
+
+  if (response.ok) {
+    const bookDetails = await response.json();
+    return bookDetails;
+  } else {
+    const errorMessage: string = await response.text();
+    notifications.addNotification("get book details error", errorMessage);
     throw new Error(errorMessage);
   }
 }

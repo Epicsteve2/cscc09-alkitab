@@ -61,11 +61,11 @@ services:
       ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
       ME_CONFIG_MONGODB_AUTH_USERNAME: root
       ME_CONFIG_MONGODB_AUTH_PASSWORD: 123456
-      ME_CONFIG_SITE_BASEURL: /mongo-express
+      # ME_CONFIG_SITE_BASEURL: /mongo-express
     depends_on:
       - mongodb
-    expose:
-      - 8081
+    ports:
+      - 8081:8081
     networks:
       - alkitab
 

@@ -1,12 +1,13 @@
 <script lang="ts">
   import { Col, Container, Row, Button } from "sveltestrap";
   import { Link } from "svelte-routing";
+  import { getSharedBooks, API_URL } from "../api-service";
 
-  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
-
-  const API_URL = import.meta.env.DEV
-    ? `http://${ALKITAB_BACKEND_URL}:${ALKITAB_BACKEND_PORT}`
-    : "";
+  import {
+    ALKITAB_BACKEND_PORT,
+    ALKITAB_BACKEND_URL,
+    currentUser,
+  } from "../stores";
 
   async function whoami() {
     const response = await self.fetch(`${API_URL}/api/users/whoami`, {
@@ -68,9 +69,10 @@
   <Button
     color="warning"
     class="mt-3"
-    on:click={() => {
-      console.log("Placeholder");
-    }}>Test nothing</Button
+    on:click={async () => {
+      const sharedBookList = await getSharedBooks($currentUser);
+      console.log({ sharedBookList });
+    }}>Test getSharedBooks</Button
   >
   <!-- <Row>
     <Col>.col</Col>

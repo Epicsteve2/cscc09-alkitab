@@ -40,7 +40,7 @@ const recurProcessChapters = async function(chapters: Array<string>, book: IBook
             console.log(body?.toString().substring(0,500)+"\n"+ body?.rawTagName+ "\n\n\n")
             console.log("chapter:"+chapters[0])
             processTree(body, book);
-            
+
             await recurProcessChapters(chapters.slice(1), book, epub, callback)
         });
     }
@@ -49,18 +49,18 @@ const recurProcessChapters = async function(chapters: Array<string>, book: IBook
 
 const processTree = function(tree:any, book:IBook){
     while (tree.toString().length > 0){
-        if (tree.toString().length <= 1000){
+        if (tree.toString().length <= 1500){
             processTreeToPage2(book, tree)
             break;
         }
         else {
             const treeC = getBaseNode2(tree)
             // console.log("BASE" + treeC.toString())
-            getNode2(book, 1000, tree, treeC);
+            getNode2(book, 1500, tree, treeC);
         }
-            
+
     }
-    
+
 }
 
 const getNode2 = function(book: IBook, charsLeft:number, tree:any, treeC:any){
@@ -92,11 +92,11 @@ const getNode2 = function(book: IBook, charsLeft:number, tree:any, treeC:any){
                     treeC.appendChild(childC)
                     getNode2(book, charsLeft - childC.toString().length, child, childC)
                     break;
-                }   
-                
+                }
+
             }
         }
-        
+
 
     }
 }
@@ -150,7 +150,7 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
         }
     });
 
-    
+
     const files = req.files as { [fieldname: string]: Express.Multer.File[]};
     const bookPath = files.book[0].path
 
@@ -159,7 +159,7 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
     epub.on("end", async function () {
 
         book.title = epub.metadata.title;
-        const chapters = epub.flow.map(element => element.id);  
+        const chapters = epub.flow.map(element => element.id);
 
 
 
@@ -176,7 +176,7 @@ export const upload: RequestHandler = async (req: Request, res: Response, next: 
         await recurProcessChapters(chapters, book, epub, callbackBookSaved);
     });
 
-    
+
 };
 
 const recurProcessImages = async function(imagesIds: Array<string>, epub:any, bookId:string, firstImage:boolean, book:IBook){
@@ -195,9 +195,9 @@ const recurProcessImages = async function(imagesIds: Array<string>, epub:any, bo
                 book.coverImg.mimeType = mimeType;
                 book.coverImg.path = path.join('uploads', bookId, imagesIds[0]);
             }
-                
-            
-            
+
+
+
             fs.promises.mkdir(path.join('uploads', bookId), { recursive: true }).then(() =>{
                 fs.writeFile(path.join('uploads', bookId, imagesIds[0]), img, (err => {
                     console.log(err)
@@ -223,7 +223,7 @@ const processImage = async function(book:IBook, epub:any) {
         const value:any = manifest[id];
         if (regex.test(value['media-type']))
             return true
-        else 
+        else
             return false
     })
 
@@ -242,7 +242,7 @@ export const upload2: RequestHandler = async (req: Request, res: Response, next:
         title: "Placeholder"
     });
 
-    
+
     const files = req.files as { [fieldname: string]: Express.Multer.File[]};
     const bookPath = files.book[0].path
 
@@ -251,8 +251,8 @@ export const upload2: RequestHandler = async (req: Request, res: Response, next:
     epub.on("end", async function () {
 
         book.title = epub.metadata.title;
-        const chapters = epub.flow.map(element => element.id);  
-        
+        const chapters = epub.flow.map(element => element.id);
+
         console.log(epub.manifest);
 
         const regex = new RegExp('image*');
@@ -262,7 +262,7 @@ export const upload2: RequestHandler = async (req: Request, res: Response, next:
             const value:any = manifest[id];
             if (regex.test(value['media-type']))
                 return true
-            else 
+            else
                 return false
         })
 
@@ -303,7 +303,7 @@ export const test: RequestHandler = async (req: Request, res: Response, next: Ne
     </html>
 `;
     const root = parse(text);
-   
+
     const textnode:any = parse("<p class=\"calibr1 calir2\" alt=\"dsfjlk\">hello</p>").firstChild
     textnode.rawAttrs = textnode.rawAttrs + " tree-id=1"
     console.log(textnode)
@@ -373,7 +373,7 @@ export const getPageHighlights: RequestHandler = async (req: Request, res: Respo
     } else {
         res.status(200).json({bookId: bookId, page: page, pageHighlights: {}});
     }
-        
+
 }
 
 export const handleUpdateHighlight: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -381,7 +381,7 @@ export const handleUpdateHighlight: RequestHandler = async (req: Request, res: R
     const page = Number(req.params.page);
     const pageHighlights = req.body.pageHighlights;
     await updateHighlight(bookId, page, pageHighlights);
-        
+
 }
 
 const updateHighlight = async function(bookId:String, page:number, updatedPageHighlights:{ [nodeId: string]: Array<Array<Number>> }){
