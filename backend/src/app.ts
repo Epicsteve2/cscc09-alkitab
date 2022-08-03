@@ -15,7 +15,6 @@ import config from './config/general';
 
 import userRouter from './routes/user';
 import libraryRouter from './routes/library';
-import bookPostRouter from './routes/bookPost';
 import sharedBooksRouter from './routes/sharedBooks';
 
 import { ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData } from './interfaces/socketio';
@@ -114,7 +113,6 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 // API Routes
 app.use('/api/users', userRouter);
 app.use('/api/library/', libraryRouter)
-app.use('/api/bookpost/', bookPostRouter)
 app.use('/api/sharedbooks/', sharedBooksRouter)
 
 // Error Handling
