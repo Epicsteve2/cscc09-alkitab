@@ -5,7 +5,6 @@ const BookSchema: Schema = new Schema(
 	{
 		user: { type: String, required: true},
 
-		bookPost: { type: String, required: true},
 		title: { type: String, required: true},
 
 		pages: { type: Array<String>, required: true },

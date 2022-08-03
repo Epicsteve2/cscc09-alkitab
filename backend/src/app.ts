@@ -19,8 +19,7 @@ import sharedBooksRouter from './routes/sharedBooks';
 
 import { ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData } from './interfaces/socketio';
 
-import User from './models/user';
-import { truncate } from 'fs';
+import { checkLoggedIn } from './middlewares/auth';
 
 
 const NAMESPACE: string = 'App';
@@ -35,29 +34,11 @@ declare module 'express-session' {
 
 app.use(
 	session({
-		secret: 'please change this secret',
+		secret: '2FLBxeUZsx',
 		resave: false,
 		saveUninitialized: true
 	})
 );
-
-// CORS
-// const options: cors.CorsOptions = {
-// 	allowedHeaders: [
-// 	  'Origin',
-// 	  'X-Requested-With',
-// 	  'Content-Type',
-// 	  'Accept',
-// 	  'X-Access-Token',
-// 	],
-// 	credentials: true,
-// 	methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
-// 	origin: '*',
-// 	preflightContinue: false,
-// };
-
-// app.use(cors());
-// app.options('*', cors)
 
 // Logging
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -85,34 +66,15 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 	  credentials: true,
 	},
   });
-	// socket.emit("noArg");
-	// socket.emit("basicEmit", 1, "2", Buffer.from([3]));
-	// socket.emit("withAck", "4", (e) => {
-	//   // e is inferred as number
-	// });
-	// socket.on("details", () => {
-	// 	// if (usersInBookRoom.get(bookRoomId)) {
-	// 	// 	const curUsers = usersInBookRoom.get(bookRoomId);
-	// 	// 	curUsers.push(socket.id);
-	// 	// 	usersInBookRoom.set(bookRoomId, curUsers);
-	// 	// } else {
-	// 	// 	usersInBookRoom.set(bookRoomId, [socket.id])
-	// 	// }
-	// 	// bookRoomOfUser.set(socket.id, bookRoomId);
-
-	// 	// socket.emit("all users", "ljdsak")
-	// 	// ...
-	// });
-
-	// works when broadcast to all
-	// io.emit("noArg");
-
-	// works when broadcasting to a room
-// });
 
 // API Routes
+
 app.use('/api/users', userRouter);
+
+app.use('/api/library', checkLoggedIn)
 app.use('/api/library/', libraryRouter)
+
+app.use('/api/sharedbooks', checkLoggedIn)
 app.use('/api/sharedbooks/', sharedBooksRouter)
 
 // Error Handling

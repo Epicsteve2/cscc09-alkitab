@@ -19,6 +19,7 @@ import EPub from 'epub';
 import { ChildProcess } from 'child_process';
 import PageHighlights from '../models/pageHighlights';
 import IPageHighlights from '../interfaces/highlights/pageHighlights';
+import { hasAccessToBook } from '../util/book';
 
 const NAMESPACE = 'Library Controller';
 
@@ -29,16 +30,12 @@ const recurProcessChapters = async function(chapters: Array<string>, book: IBook
        book.numPages = book.pages.length;
        const numPages = book.numPages;
        await processImage(book, epub)
-    //    await book.save();
        callback();
-       console.log(numPages);
-       console.log("SAVEDSAEVD")
+
     } else {
         epub.getChapterRaw(chapters[0], async function(err: any, text: string){
             const root = parse(text);
             const body = root.querySelector("body");
-            console.log(body?.toString().substring(0,500)+"\n"+ body?.rawTagName+ "\n\n\n")
-            console.log("chapter:"+chapters[0])
             processTree(body, book);
 
             await recurProcessChapters(chapters.slice(1), book, epub, callback)
@@ -47,16 +44,16 @@ const recurProcessChapters = async function(chapters: Array<string>, book: IBook
 
 }
 
+const HTML_BLOCK_LIMIT = 1500;
 const processTree = function(tree:any, book:IBook){
     while (tree.toString().length > 0){
-        if (tree.toString().length <= 1500){
+        if (tree.toString().length <= HTML_BLOCK_LIMIT){
             processTreeToPage2(book, tree)
             break;
         }
         else {
             const treeC = getBaseNode2(tree)
-            // console.log("BASE" + treeC.toString())
-            getNode2(book, 1500, tree, treeC);
+            getNode2(book, HTML_BLOCK_LIMIT, tree, treeC);
         }
 
     }
@@ -64,16 +61,11 @@ const processTree = function(tree:any, book:IBook){
 }
 
 const getNode2 = function(book: IBook, charsLeft:number, tree:any, treeC:any){
-    // const child = tree.childNodes[0]
-    // console.log("LEFTINIT" + charsLeft);
     for (var child of tree.childNodes){
-        // console.log("LEFTLOOP"+ charsLeft)
-        // console.log("child is " + child.toString())
         if (child.toString().length <= charsLeft){
             treeC.appendChild(child.clone())
             tree.removeChild(child)
             charsLeft -= child.toString().length;
-            // console.log("ADDED child:" + child.toString() + ":with length:"+ child.toString().length)
         } else {
             if (child.nodeType === 3){
                 const leafCopy = getBaseNode2(child)
@@ -96,11 +88,10 @@ const getNode2 = function(book: IBook, charsLeft:number, tree:any, treeC:any){
 
             }
         }
-
-
     }
 }
 
+// Given a Tree Object, convert it to a string, and add it to pages of the book
 const processTreeToPage2 = function(book: IBook, tree:any){
     while (tree.rawTagName !== 'body'){
         tree = tree.parentNode;
@@ -109,6 +100,7 @@ const processTreeToPage2 = function(book: IBook, tree:any){
     book.pages.push(tree.toString())
 }
 
+// Adds an attribute "tree-id" to all ELEMENT Nodes of the Tree Object
 const addIds = function(tree:any){
     let id=0;
     let cur:any
@@ -127,6 +119,7 @@ const addIds = function(tree:any){
 
 }
 
+// Returns a copy of the Node that has all children removed
 const getBaseNode2 = function(tree:any){
     const treeC = tree.clone()
     for (var child of treeC.childNodes){
@@ -137,45 +130,46 @@ const getBaseNode2 = function(tree:any){
 
 
 export const upload: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
-    // expect(req.files.book, "file needed").to.exist;
-    const book = new Book({
-        user: req.session.user || req.body.username ,
-        pages: [],
-        bookPost: req.body.bookPost || "Mock",
-        title: "Placeholder",
-        coverImg : {
-            id : "",
-            mimeType: "",
-            path: ""
-        }
-    });
+    if (req.session.user){
+        const book = new Book({
+            user: req.session.user ,
+            pages: [],
+            title: "Placeholder",
+            coverImg : {
+                id : "",
+                mimeType: "",
+                path: ""
+            }
+        });
+        
 
 
-    const files = req.files as { [fieldname: string]: Express.Multer.File[]};
-    const bookPath = files.book[0].path
+        const files = req.files as { [fieldname: string]: Express.Multer.File[]};
+        const bookPath = files.book[0].path
 
-    let epub = new Epub(bookPath);
-    epub.parse();
-    epub.on("end", async function () {
+        let epub = new Epub(bookPath);
+        epub.parse();
+        epub.on("end", async function () {
 
-        book.title = epub.metadata.title;
-        const chapters = epub.flow.map(element => element.id);
+            book.title = epub.metadata.title;
+            const chapters = epub.flow.map(element => element.id);
 
 
 
-        fs.unlink(bookPath, (err) =>{
-            console.log(err);
+            fs.unlink(bookPath, (err) =>{
+                console.log(err);
+            });
+
+
+            const callbackBookSaved = function(){
+                res.status(200).json({msg:"uploaded", id:book._id})
+            }
+
+
+            await recurProcessChapters(chapters, book, epub, callbackBookSaved);
         });
 
-
-        const callbackBookSaved = function(){
-            res.status(200).json({msg:"uploaded", id:book._id})
-        }
-
-
-        await recurProcessChapters(chapters, book, epub, callbackBookSaved);
-    });
-
+    }
 
 };
 
@@ -232,91 +226,17 @@ const processImage = async function(book:IBook, epub:any) {
 
 }
 
-export const upload2: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
-    // expect(req.files.book, "file needed").to.exist;
-    const book = new Book({
-        user: req.session.user || req.body.username ,
-        sharedUsers: [],
-        pages: [],
-        bookPost: req.body.bookPost || "Mock",
-        title: "Placeholder"
-    });
-
-
-    const files = req.files as { [fieldname: string]: Express.Multer.File[]};
-    const bookPath = files.book[0].path
-
-    let epub = new Epub(bookPath);
-    epub.parse();
-    epub.on("end", async function () {
-
-        book.title = epub.metadata.title;
-        const chapters = epub.flow.map(element => element.id);
-
-        console.log(epub.manifest);
-
-        const regex = new RegExp('image*');
-
-        const imageIds = Object.keys(epub.manifest).filter(id => {
-            const manifest:any = epub.manifest;
-            const value:any = manifest[id];
-            if (regex.test(value['media-type']))
-                return true
-            else
-                return false
-        })
-
-        console.log(imageIds);
-        recurProcessImages(imageIds, epub, "7777878", true, book);
-
-        fs.unlink(bookPath, (err) =>{
-            // console.log(err);
-        });
-
-    });
-
-};
-
-
-
-export const test: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
-    // expect(req.files.book, "file needed").to.exist;
-
-    const text = `<html>
-    1daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    2daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    3daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    4daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    5daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    6daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    7daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    8daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    9daniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Adaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Bdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Cdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Ddaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Edaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Fdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Gdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    Hdaniel<p class=\"calibr1 calir2\" alt=\"dsfjlk\"> charile <i> foxtrot</i> tango</p><i class=\"fontX\"> bob</i>
-    </html>
-`;
-    const root = parse(text);
-
-    const textnode:any = parse("<p class=\"calibr1 calir2\" alt=\"dsfjlk\">hello</p>").firstChild
-    textnode.rawAttrs = textnode.rawAttrs + " tree-id=1"
-    console.log(textnode)
-    console.log(textnode.toString())
-
-    res.status(200).json("lol")
-};
 
 export const getBook: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const page = req.query.page ? Number(req.query.page) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 1;
     const bookId = req.params.id;
+
     if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
+    if (req.session.user){
+        if (! await hasAccessToBook(req.session.user, bookId))
+            return res.status(403).json({msg: "No access to book"})
+    }
 
     const book =  await Book.findById(bookId);
     if (book){
@@ -330,7 +250,13 @@ export const getBook: RequestHandler = async (req: Request, res: Response, next:
 
 export const getBookDetails: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const bookId = req.params.id;
+
     if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
+    if (req.session.user){
+        if (! await hasAccessToBook(req.session.user, bookId))
+            return res.status(403).json({msg: "No access to book"})
+    }
+    
 
     const book =  await Book.findById(bookId).select("-pages");
     if (book){
@@ -342,6 +268,15 @@ export const getBookDetails: RequestHandler = async (req: Request, res: Response
 };
 
 export const getCoverImage: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+    const bookId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
+    if (req.session.user){
+        if (! await hasAccessToBook(req.session.user, bookId))
+            return res.status(403).json({msg: "No access to book"})
+    }
+    
+
     const book =  await Book.findById(req.params.id);
     if (book){
         const coverImg = book.coverImg;
@@ -356,7 +291,7 @@ export const getCoverImage: RequestHandler = async (req: Request, res: Response,
 
 export const getLibrary: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const limit = req.query.limit ? Number(req.query.limit) : 5;
-    const username = req.session.user || req.query.user
+    const username = req.session.user
 
     const books = await Book.find({user: username}).select('-pages').limit(limit);
 
@@ -367,6 +302,14 @@ export const getLibrary: RequestHandler = async (req: Request, res: Response, ne
 export const getPageHighlights: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const bookId = req.params.bookId;
     const page = req.params.page;
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
+    if (req.session.user){
+        if (! await hasAccessToBook(req.session.user, bookId))
+            return res.status(403).json({msg: "No access to book"})
+    }
+    
+
     const pageHighlights = await PageHighlights.findOne({$and : [{bookId : bookId}, {page:page}]});
     if (pageHighlights){
         res.status(200).json({bookId: bookId, page: page, pageHighlights: pageHighlights.highlights})
@@ -380,7 +323,16 @@ export const handleUpdateHighlight: RequestHandler = async (req: Request, res: R
     const bookId = req.params.bookId;
     const page = Number(req.params.page);
     const pageHighlights = req.body.pageHighlights;
+
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) return res.status(400).json({msg:"Invalid ID"})
+    if (req.session.user){
+        if (! await hasAccessToBook(req.session.user, bookId))
+            return res.status(403).json({msg: "No access to book"})
+    }
+
     await updateHighlight(bookId, page, pageHighlights);
+    res.status(200).json({msg: "highlight for page has been saved"})
 
 }
 
