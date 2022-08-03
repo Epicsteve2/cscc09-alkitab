@@ -542,11 +542,11 @@ const makeHighlight = function(isHighlight:boolean){
 
         
         // If ancestorNode is a SPAN, the ancestor in the oringinal page would be the parent of spanWrapper
-        if (ancestorNode.nodeType === TEXT_NODE && ancestorNode.parentNode.tagName === "SPAN"){
+        if (ancestorNode.nodeType === TEXT_NODE && ancestorNode.parentNode.tagName === "SPAN" && !ancestorNode.parentNode.hasAttribute("tree-id")){
             ancestorNodeId = nodeIdSpan(startNode)
         }
         else {
-            while (ancestorNode.tagName === "SPAN"){
+            while (ancestorNode.tagName === "SPAN" && !ancestorNode.hasAttribute("tree-id")){
                 ancestorNode = ancestorNode.parentNode;
             } 
             ancestorNodeId = nodeId2(ancestorNode);
@@ -556,7 +556,7 @@ const makeHighlight = function(isHighlight:boolean){
         // Start/End nodes only work with the nonHighlighted pages version
         // Since the user is selecting on a page with highlights/spans,
         // we need to convert it as if their selection was being made on a page without spans
-        if (startNode.parentElement.tagName === "SPAN"){
+        if (startNode.parentElement.tagName === "SPAN" && !startNode.parentElement.hasAttribute('tree-id')){
             startNodeOffset = convertSelectionWithoutSpan(startNode, range.startOffset);
             startNodeId = nodeIdSpan(startNode)
         } else {
@@ -564,7 +564,7 @@ const makeHighlight = function(isHighlight:boolean){
             startNodeOffset = range.startOffset
         }
 
-        if (endNode.parentElement.tagName === "SPAN"){
+        if (endNode.parentElement.tagName === "SPAN" && !endNode.parentElement.hasAttribute('tree-id')){
             endNodeOffset = convertSelectionWithoutSpan(endNode, range.endOffset);
             endNodeId = nodeIdSpan(endNode)
         } else {
