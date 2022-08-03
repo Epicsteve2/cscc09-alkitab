@@ -195,7 +195,6 @@ const highlightRange = function(pageHighlight, tree, range){
         highlightNodePartial(range.endNode, 0, range.endOffset, pageHighlight)
     }   
     
-    console.log(tree.toString());
 
     return (tree.toString());
 
@@ -293,8 +292,6 @@ const getPrevSibling = function(node){
     
     const parent = node.parentNode;
     const children = parent.childNodes
-    console.log(parent)
-    console.log(children)
 
     // This will be used as the unquie identifier for the node
     const nodeRange = node.range

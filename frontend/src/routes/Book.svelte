@@ -134,23 +134,11 @@ const nodeId2 = function(node){
         const parent = node.parentNode
         let x = 0;
 
-        // V1
-        // let cur = parent.firstChild;
-        // while (cur.textContent !== node.textContent){
-        //     x++;
-        //     cur = cur.nextSibling
-        // }
-
-        // V2
-        
         let cur = node
         while (cur.previousSibling){
             cur = cur.previousSibling;
             x++;
         }
-
-
-
         return `${parent.getAttribute("tree-id")}-${x}`;
     }
 }
@@ -192,15 +180,13 @@ const nodeContainsNode = function(node1, node2){
 }
 
 
-const postProcess = function(pageHighlights, HTMLString, range){
+const postProcess = function(pageHighlights, HTMLString, range, isHighlight){
     const tree = parse(HTMLString);
-    // console.log(tree);
+
     const startNode = getNodebyId(tree, range.startNode.nodeId)
     const endNode = getNodebyId(tree, range.endNode.nodeId)
     const ancestorNode = getNodebyId(tree, range.ancestor.nodeId)
 
-    // console.log(startNode);
-    // console.log(endNode);
     const range2 = {
         startNode : startNode,
         startOffset: range.startNode.offset,
@@ -210,9 +196,8 @@ const postProcess = function(pageHighlights, HTMLString, range){
 
         ancestorNode : ancestorNode
     }
-    console.log(range2);
 
-    return highlightRange(pageHighlights, tree, range2);
+    return highlightRange(pageHighlights, tree, range2, isHighlight);
 
 }
 
@@ -233,13 +218,17 @@ const makeHighlightSpan = function(node){
 
 // If Node is Ele, recur
 // If Node is Text, add full highlight
-const highlightNodeFull = function(node, pageHighlight){
+const highlightNodeFull = function(node, pageHighlight, isHighlight){
     if (node.nodeType === TEXT_NODE){
-        pageHighlight[nodeId(node)] = [[0, node.textContent.length]]
+        if (isHighlight){
+            pageHighlight[nodeId(node)] = [[0, node.textContent.length]]
+        } else {
+            delete pageHighlight[nodeId(node)]
+        } 
     }
     if (node.nodeType === ELEMENT_NODE){
         node.childNodes.forEach(child => {  
-            highlightNodeFull(child, pageHighlight);
+            highlightNodeFull(child, pageHighlight, isHighlight);
         });
     }
 
@@ -247,47 +236,107 @@ const highlightNodeFull = function(node, pageHighlight){
 
 
 // Merge Parital highlights, If there is an overlap, merge into one
-const highlightNodePartial = function(textNode, start, end, pageHighlights){
+const highlightNodePartial = function(textNode, start, end, pageHighlights, isHighlight){
+
+    console.log(textNode)
+    console.log(start)
+    console.log(end)
+    console.log(pageHighlights);
+    console.log("PAGE HIGHLIGHTS BEFORE")
+
     const intervalSet = pageHighlights[nodeId(textNode)] ? pageHighlights[nodeId(textNode)] : []
-    // console.log("IN")
-    // console.log(intervalSet)
     if (end === -1) end = textNode.textContent.length
 
     if (textNode.nodeType === TEXT_NODE){
-
+    
+    // Merge the interval
+    if (isHighlight){
         intervalSet.push([start, end]);
         const mergedIntervalSet = mergeRanges(intervalSet)
 
-        console.log(mergedIntervalSet);
         pageHighlights[nodeId(textNode)] = mergedIntervalSet;
+    
+    // Remove all overlap with interval
+    } else {
+        const newIntervalSet = []
+        intervalSet.forEach(interval => {
+            // CASE no overlap
+            // UnhighlightInt :  |------------|
+            // highlightInt   :                     |----------|
+            // NewHighlightInt:                     |----------|
+            if (interval[1] <= start || interval[0] >= end){
+                newIntervalSet.push(interval);
+            } 
+            // CASE Complete Coverage
+            // UnhighlightInt :  |-----------------------------------|
+            // highlightInt   :          |------------------|
+            // NewHighlightInt:                  
+            if (interval[0] >= start && interval[1] <= end){
+                // Do not add highlight as its been 'removed'
+            }
+
+            // CASE
+            // UnhighlightInt :  |----------------|
+            // highlightInt   :          |------------------|
+            // NewHighlightInt:                   |---------|
+            if (interval[0] >= start && interval[0] < end &&  interval[1] > end){
+                newIntervalSet.push([end, interval[1]])
+            }
+
+            // CASE
+            // UnhighlightInt :             |----------------|
+            // highlightInt   :  |------------------|
+            // NewHighlightInt:  |---------|
+            if (interval[0] < start && interval[1] <= end && interval[1] > start){
+                newIntervalSet.push([interval[0], start])
+            }
+
+            // CASE
+            // UnhighlightInt :             |----------------|
+            // highlightInt   :  |------------------------------------|
+            // NewHighlightInt:  |---------|                 |--------|
+            if (interval[0] < start && interval[1] > end){
+                newIntervalSet.push([interval[0], start])
+                newIntervalSet.push([end, interval[1]]);
+            }
+
+            if (newIntervalSet.length == 0){
+                delete pageHighlights[nodeId(textNode)]
+            } else {
+                pageHighlights[nodeId(textNode)] = newIntervalSet;
+            }
+           
+        })
+    }
+        
     }
 
 }
 
 
 
-const highlightRange = function(pageHighlight, tree, range){
+const highlightRange = function(pageHighlight, tree, range, isHighlight){
 
     // Highlight all nodes inbetween range
-    buildUp(range.startNode, range.ancestorNode, pageHighlight)
-    buildDown(range.startNode, range.ancestorNode, range.endNode, pageHighlight)
+    buildUp(range.startNode, range.ancestorNode, pageHighlight, isHighlight)
+    buildDown(range.startNode, range.ancestorNode, range.endNode, pageHighlight, isHighlight)
 
     //Highlight Start and End nodes 
     if (nodeId(range.startNode) === nodeId(range.endNode)){
-        highlightNodePartial(range.startNode, range.startOffset, range.endOffset, pageHighlight)
+        highlightNodePartial(range.startNode, range.startOffset, range.endOffset, pageHighlight, isHighlight)
     } else {
-        highlightNodePartial(range.startNode, range.startOffset, -1, pageHighlight)
-        highlightNodePartial(range.endNode, 0, range.endOffset, pageHighlight)
+        highlightNodePartial(range.startNode, range.startOffset, -1, pageHighlight, isHighlight)
+        highlightNodePartial(range.endNode, 0, range.endOffset, pageHighlight, isHighlight)
     }   
     
-    console.log(tree.toString());
+    // console.log(tree.toString());
 
     return (tree.toString());
 
     
 }
 
-const buildUp = function(startNode, commonAncestor, pageHighlight){
+const buildUp = function(startNode, commonAncestor, pageHighlight, isHighlight){
     let cur = startNode
     while(nodeId(cur) !== nodeId(commonAncestor)){
         const childContainingStart = cur.childNodes.filter(child => nodeContainsNode(child, startNode))
@@ -296,7 +345,7 @@ const buildUp = function(startNode, commonAncestor, pageHighlight){
             let curNode = childContainingStart[0];
             while(getNextSibling(curNode)){
                 curNode = getNextSibling(curNode);
-                highlightNodeFull(curNode, pageHighlight);
+                highlightNodeFull(curNode, pageHighlight, isHighlight);
             }
         }
         
@@ -304,37 +353,24 @@ const buildUp = function(startNode, commonAncestor, pageHighlight){
     }
 }
 
-const buildDown = function(startNode, Ancestor, endNode, pageHighlight){
+const buildDown = function(startNode, Ancestor, endNode, pageHighlight, isHighlight){
     let cur = Ancestor
     while(nodeId(cur) !== nodeId(endNode)){
-        // console.log(cur);
         const childContainingStart = cur.childNodes.filter(child => nodeContainsNode(child, startNode))
         const childContainingEnd  = cur.childNodes.filter(child => nodeContainsNode(child, endNode))[0]
-        // console.log(cur.childNodes[20]);
-        // console.log(endNode);
-        // console.log(nodeContainsNode(cur.childNodes[20], endNode));
-        // console.log(cur.childNodes[20].toString())
-        // const parent = childContainingStart[0].parentNode
-        // let child = parent.firstChild
-        // console.log(child.range)
-        // while (child.nextSibling){
-        //     console.log(child);
-        //     console.log(child.range)
-        //     child = child.nextSibling;
-        // }       
-        // console.log(childContainingStart);
+
         if (childContainingStart.length !== 0){
             let curNode = childContainingStart[0];
             while(nodeId(curNode) !== nodeId(childContainingEnd)){
                 curNode = getNextSibling(curNode);
                 if (nodeId(curNode) !== nodeId(childContainingEnd))
-                    highlightNodeFull(curNode, pageHighlight);
+                    highlightNodeFull(curNode, pageHighlight, isHighlight);
             }
         } else {
             let curNode = childContainingEnd;
             while(getPrevSibling(curNode)){
                 curNode = getPrevSibling(curNode);
-                highlightNodeFull(curNode, pageHighlight);
+                highlightNodeFull(curNode, pageHighlight, isHighlight);
             }
         }
 
@@ -378,8 +414,6 @@ const getPrevSibling = function(node){
     
     const parent = node.parentNode;
     const children = parent.childNodes
-    console.log(parent)
-    console.log(children)
 
     // This will be used as the unquie identifier for the node
     const nodeRange = node.range
@@ -427,8 +461,8 @@ const getPrevSibling = function(node){
 // }
 
 
-const mergeHighlights = function (pageHighlights, range, HTMLpage){
-    postProcess(pageHighlights, HTMLpage, range)
+const mergeHighlights = function (pageHighlights, range, HTMLpage, isHighlight){
+    postProcess(pageHighlights, HTMLpage, range, isHighlight)
     console.log(pageHighlights);
 
 }
@@ -472,10 +506,6 @@ const addHighlights = function(pageHighlights, page){
             const nonHighlightInterval = [lastInterval[1], str.length, 0]
             allInvtervals.push(nonHighlightInterval)
         }
-
-        console.log("FOR ID " + nodeId);
-        console.log(allInvtervals);
-
         
         // Convert Intervals into Nodes and add to spanWrapper
         allInvtervals.forEach(interval => {
@@ -519,7 +549,8 @@ const addHighlights = function(pageHighlights, page){
 
 }
 
-const makeHighlight = function(){
+// 1: selection is for highlighting, 0: selection is to remove highlights
+const makeHighlight = function(isHighlight:boolean){
     
     console.log(window.getSelection())
     if (window.getSelection().anchorNode){
@@ -553,7 +584,6 @@ const makeHighlight = function(){
         // Since the user is selecting on a page with highlights/spans,
         // we need to convert it as if their selection was being made on a page without spans
         if (startNode.parentElement.tagName === "SPAN"){
-            console.log(startNode)
             startNodeOffset = convertSelectionWithoutSpan(startNode, range.startOffset);
             startNodeId = nodeIdSpan(startNode)
         } else {
@@ -586,18 +616,16 @@ const makeHighlight = function(){
             }
         }
 
-        console.log("CONDESNT RANGE")
-        console.log(condensedRange);
 
         const page = localStorage.getItem('page');
         const pageHighlights = JSON.parse(localStorage.getItem('highlights'));
 
-        console.log("highlights")
-        console.log(pageHighlights);
-        console.log(page)
 
         // Given the highlighted range, updated the pageHighlights
-        mergeHighlights(pageHighlights, condensedRange, page);
+        mergeHighlights(pageHighlights, condensedRange, page, isHighlight);
+
+        console.log("PAGEHIGHLIGHT AFTER UNHIGLIGHT")
+        console.log(pageHighlights);
 
         // Update DOM to show new highlights
         addHighlights(pageHighlights, page);
@@ -618,6 +646,14 @@ const makeHighlight = function(){
     }
     
 
+}
+
+const clickRemoveHighlight = function(){
+    makeHighlight(false);
+}
+
+const clickAddHighlights = function(){
+    makeHighlight(true);
 }
 
 // The span wrapper's id is equal to textNode id in unHighlighted version of the page
@@ -644,9 +680,6 @@ const convertSelectionWithoutSpan = function(textNode, offset){
     const parent = textNode.parentNode;
     let spanWrapper;
     let nodeContainingTextNode;
-    console.log(textNode);
-    console.log(parent.getAttribute('class'))
-    console.log(parent.getAttribute('class'))
     if (parent.getAttribute('class') === 'wrapper'){
         spanWrapper = parent;
         nodeContainingTextNode = textNode;
@@ -711,8 +744,11 @@ const convertSelectionWithoutSpan = function(textNode, offset){
       Next Page</button
     >
 
-    <button class="btn btn-warning " type="button" on:click={makeHighlight}>
+    <button class="btn btn-warning " type="button" on:click={clickAddHighlights}>
         Highlight</button>
+
+    <button class="btn btn-warning " type="button" on:click={clickRemoveHighlight}>
+        Unhighlight</button>
 
   </div>
 </div>
