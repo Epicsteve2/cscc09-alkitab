@@ -94,6 +94,7 @@ const TEXT_NODE = 3;
 const ELEMENT_NODE = 1;
 // If Node is Element, tree-id is the Id
 // If Node is TextNode, Id defined as '<parentElement tree-id> - <xth child relative to parent>'
+    
 // Version for Node Object given by html-parser
 const nodeId = function(node){
     if (node.nodeType === ELEMENT_NODE) 
@@ -102,23 +103,12 @@ const nodeId = function(node){
     else {
         const parent = node.parentNode
         let x = 0;
-
-        // V1
-        // let cur = parent.firstChild;
-        // while (cur.textContent !== node.textContent){
-        //     x++;
-        //     cur = cur.nextSibling
-        // }
-
-        // V2
         
         let cur = node
         while (getPrevSibling(cur)){
             cur = getPrevSibling(cur);
             x++;
         }
-
-
 
         return `${parent.getAttribute("tree-id")}-${x}`;
     }
@@ -154,8 +144,11 @@ const getNodebyId = function(tree, nodeId){
         return parentNode.childNodes[xthChildNum];
 
 
-    } else 
+    } else {
+        // Element Node
         return tree.querySelectorAll(`[tree-id="${nodeId}"]`)[0]
+    }
+        
 
 }
 
@@ -169,7 +162,6 @@ const nodeContainsNode = function(node1, node2){
     } 
     if (node2.nodeType === TEXT_NODE) {
         const parentId = nodeId(node2).split("-")[0];
-        // const ele = node1.querySelectorAll(`[tree-id="${parentId}"]`)
 
         const tree2 = parse(node1.toString())
         const ele = tree2.querySelectorAll(`[tree-id="${parentId}"]`);
@@ -235,14 +227,8 @@ const highlightNodeFull = function(node, pageHighlight, isHighlight){
 }
 
 
-// Merge Parital highlights, If there is an overlap, merge into one
+// Merge Parital highlights or remove partial highlights
 const highlightNodePartial = function(textNode, start, end, pageHighlights, isHighlight){
-
-    console.log(textNode)
-    console.log(start)
-    console.log(end)
-    console.log(pageHighlights);
-    console.log("PAGE HIGHLIGHTS BEFORE")
 
     const intervalSet = pageHighlights[nodeId(textNode)] ? pageHighlights[nodeId(textNode)] : []
     if (end === -1) end = textNode.textContent.length
@@ -256,10 +242,12 @@ const highlightNodePartial = function(textNode, start, end, pageHighlights, isHi
 
         pageHighlights[nodeId(textNode)] = mergedIntervalSet;
     
+
     // Remove all overlap with interval
     } else {
         const newIntervalSet = []
         intervalSet.forEach(interval => {
+
             // CASE no overlap
             // UnhighlightInt :  |------------|
             // highlightInt   :                     |----------|
@@ -379,10 +367,8 @@ const buildDown = function(startNode, Ancestor, endNode, pageHighlight, isHighli
 }
 
 
-
-// Since node.nextSibling only seems to work for Element nodes 
-// and not Text nodes (great...), Custom nextSiblings and Prevsiblings needed
-
+// Node Object for html parser's TextNode.nextSibling dosen't work
+// Custom nextSiblings and Prevsiblings needed
 const getNextSibling = function(node){
     const parent = node.parentNode;
     const children = parent.childNodes
@@ -405,8 +391,6 @@ const getNextSibling = function(node){
         i++;
         child = children[i]
     }
-
-    console.log("SHOULD NOT REACH");
     return null
 }
 
@@ -434,7 +418,6 @@ const getPrevSibling = function(node){
         child = children[i]
     }
 
-    console.log("SHOULD NOT REACH");
     return null
 }
 
@@ -455,18 +438,14 @@ const getPrevSibling = function(node){
 
 
 
-// async function getNextPage(): Promise<void>{
-//     pageNumber += 1;
-//     promise = getBook(bookId)
-// }
-
-
 const mergeHighlights = function (pageHighlights, range, HTMLpage, isHighlight){
     postProcess(pageHighlights, HTMLpage, range, isHighlight)
     console.log(pageHighlights);
 
 }
 
+
+// Running this function will update the page based on pageHighlights passed in
 const addHighlights = function(pageHighlights, page){
     const tree = parse(page);
     for (var nodeId in pageHighlights){
@@ -518,7 +497,6 @@ const addHighlights = function(pageHighlights, page){
                 highlightSpan.appendChild(newTextNode);
                 spanWrapper.appendChild(highlightSpan);
             }
-
             if (interval[2] === 0){
                 // Plain Interval
                 const newTextNode = textNode.clone();
@@ -527,15 +505,11 @@ const addHighlights = function(pageHighlights, page){
                 spanWrapper.appendChild(newTextNode);
             }
         })
-
-        
         
         parentNode.exchangeChild(textNode, spanWrapper)
         
-        // spanEle.appendChild(node)
     }
 
-    console.log(tree.toString());
 
     async function treeString(tree) {
         const arr = []
@@ -549,10 +523,9 @@ const addHighlights = function(pageHighlights, page){
 
 }
 
-// 1: selection is for highlighting, 0: selection is to remove highlights
+// 1: selection is for highlighting,
+// 0: selection is to remove highlights
 const makeHighlight = function(isHighlight:boolean){
-    
-    console.log(window.getSelection())
     if (window.getSelection().anchorNode){
         const range = window.getSelection().getRangeAt(0);
 
@@ -686,9 +659,7 @@ const convertSelectionWithoutSpan = function(textNode, offset){
     } else if (parent.getAttribute('class') === 'highlight'){
         spanWrapper = parent.parentNode
         nodeContainingTextNode = parent;
-    } else {
-        console.log("SHUOLD NOT REACH")
-    }
+    } 
 
     let convertedOffset = 0;
     let child = spanWrapper.firstChild
@@ -699,13 +670,7 @@ const convertSelectionWithoutSpan = function(textNode, offset){
     convertedOffset += offset;
 
     return convertedOffset;
-
-    
 }
-
-
-
-
 
 
 
