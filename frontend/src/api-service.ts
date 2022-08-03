@@ -91,7 +91,6 @@ export interface BookList {
   _id: string;
   pages: Array<String>;
   user: String;
-  bookPost: String;
   numPages: Number;
   title: String;
   coverImg: {
