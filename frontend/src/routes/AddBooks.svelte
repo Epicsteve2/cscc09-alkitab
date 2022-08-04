@@ -10,7 +10,7 @@
 
 <Container class="pt-5">
   {#if !$currentUser}
-    <h1 class="text-center pt-5">Please log in to to add books🔒</h1>
+    <h1 class="text-center pt-5">Please log in to to add books 🔒</h1>
   {:else}
     <h1 class="text-center py-3">Add books</h1>
     <form class="position-relative mx-auto" id="add-file-form">
