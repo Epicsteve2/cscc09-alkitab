@@ -6,14 +6,9 @@ const EVENTS = {
   connection: "connection",
   CLIENT: {
     ENTER_BOOK_ROOM: "ENTER BOOK ROOM",
-    SEND_ROOM_MESSAGE: "SEND_ROOM_MESSAGE",
-    JOIN_ROOM: "JOIN_ROOM",
     UPDATED_HIGHLIGHTS: "UPDATED_HIGHLIGHTS"
   },
   SERVER: {
-    ROOMS: "ROOMS",
-    JOINED_ROOM: "JOINED_ROOM",
-    ROOM_MESSAGE: "ROOM_MESSAGE",
     NEW_HIGHLIGHTS: "NEW_HIGHLIGHTS"
   },
 };
@@ -62,7 +57,7 @@ function socket({ io }: { io: Server }) {
      */
     socket.on(EVENTS.CLIENT.UPDATED_HIGHLIGHTS, (bookId, page, pageHighlights) => {
       logger.info(NAMESPACE, `book: ${bookId} recived update on page: ${page}`);
-      
+
       socket.to(bookId).emit(EVENTS.SERVER.NEW_HIGHLIGHTS, {
         page: page,
         pageHighlights: pageHighlights
