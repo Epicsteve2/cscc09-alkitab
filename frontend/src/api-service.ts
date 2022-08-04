@@ -225,8 +225,6 @@ export async function updateHighlights(
   if (response.ok) {
   } else {
     let errorMessage: string = await response.text();
-    // TODO: Temp
-    // notifications.addNotification("Failed to get Highlights", errorMessage);
     throw new Error(errorMessage);
   }
 }
@@ -319,9 +317,7 @@ export async function getSharedBooks(
   }
 }
 
-export async function getBookDetails(
-  bookId: string
-): Promise<{ book: Object }> {
+export async function getBookDetails(bookId: string): Promise<{ book: any }> {
   const response = await fetch(
     `${API_URL}/api/library/book/${bookId}/details`,
     {

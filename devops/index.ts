@@ -68,7 +68,7 @@ const frontendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-frontend`,
-              image: "epicsteve2/alkitab-frontend:1.0.4",
+              image: "epicsteve2/alkitab-frontend:1.0.5",
               imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 80 }],
             },

@@ -428,7 +428,6 @@
     isHighlight
   ) {
     postProcess(pageHighlights, HTMLpage, range, isHighlight);
-    console.log(pageHighlights);
   };
 
   // Running this function will update the page based on pageHighlights passed in
@@ -595,9 +594,6 @@
       // Given the highlighted range, updated the pageHighlights
       mergeHighlights(pageHighlights, condensedRange, page, isHighlight);
 
-      console.log("PAGEHIGHLIGHT AFTER UNHIGLIGHT");
-      console.log(pageHighlights);
-
       // Update DOM to show new highlights
       addHighlights(pageHighlights, page);
 
@@ -609,8 +605,6 @@
 
       // Also save it to localStorage
       localStorage.setItem("highlights", JSON.stringify(pageHighlights));
-    } else {
-      console.log("No text selected");
     }
   };
 
