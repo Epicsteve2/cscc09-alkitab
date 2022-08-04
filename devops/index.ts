@@ -25,7 +25,7 @@ const mongodb = new k8s.helm.v3.Chart("mongodb", {
       tag: "5.0.9-debian-11-r7",
     },
     auth: {
-      rootPassword: "123456",
+      rootPassword: process.env.MONGODB_ADMIN_PASSWORD,
     },
   },
 });
