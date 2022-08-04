@@ -1,6 +1,5 @@
 <script lang="ts">
   import Bookshelf from "./routes/Bookshelf.svelte";
-  import TestPage from "./routes/TestPage.svelte";
   import Credits from "./routes/Credits.svelte";
   import Login from "./routes/Login.svelte";
   import AddBooks from "./routes/AddBooks.svelte";
@@ -21,7 +20,6 @@
   <div class="fluid-container d-flex flex-column min-vh-100">
     <AlkitabNavbar />
 
-    <Route path="test" component={TestPage} />
     <Route path="/" component={Bookshelf} />
     <Route path="/credits" component={Credits} />
     <Route path="/login-signup" component={Login} />
