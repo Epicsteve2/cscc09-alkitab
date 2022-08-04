@@ -36,6 +36,9 @@
   let bookMaxPage: number;
 
   // Socket
+
+  // const SOCKET_URL = "http://localhost:8080";
+
   const socket = io(API_URL);
   onMount(async () => {
     socket.connect();

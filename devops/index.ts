@@ -43,10 +43,14 @@ const mongoExpress = new k8s.helm.v3.Chart(
         tag: "1.0.0-alpha.4",
       },
       mongodbEnableAdmin: true,
-      mongodbAdminPassword: "123456",
+      mongodbAdminPassword: process.env.MONGODB_ADMIN_PASSWORD,
       siteBaseUrl: "/mongo-express",
-      basicAuthUsername: isMinikube ? null : "Mashiro",
-      basicAuthPassword: isMinikube ? null : "SoupPasta",
+      basicAuthUsername: isMinikube
+        ? null
+        : process.env.MONGOEXPRESS_ADMIN_USERNAME,
+      basicAuthPassword: isMinikube
+        ? null
+        : process.env.MONGOEXPRESS_ADMIN_PASSWORD,
     },
   },
   { dependsOn: mongodb.ready }
@@ -64,7 +68,7 @@ const frontendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-frontend`,
-              image: "epicsteve2/alkitab-frontend:1.0.2",
+              image: "epicsteve2/alkitab-frontend:1.0.4",
               imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 80 }],
             },
@@ -81,7 +85,6 @@ const frontendService = new k8s.core.v1.Service(`${appName}-frontend-service`, {
     name: "alkitab-frontend-service",
   },
   spec: {
-    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
     type: "ClusterIP",
     ports: [{ port: 80 }],
     selector: appLabels,
@@ -100,7 +103,7 @@ const backendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-backend`,
-              image: "epicsteve2/alkitab-backend:1.0.0",
+              image: "epicsteve2/alkitab-backend:1.0.2",
               imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 3000 }],
               env: [{ name: "MONGO_HOST", value: "mongodb" }],
@@ -119,7 +122,6 @@ const backendService = new k8s.core.v1.Service(`${appName}-backend-service`, {
     name: "alkitab-backend-service",
   },
   spec: {
-    // type: isMinikube ? "ClusterIP" : "LoadBalancer",
     type: "ClusterIP",
     ports: [{ port: 3000 }],
     selector: appLabels,
@@ -130,7 +132,6 @@ const certManager = new certmanager.CertManager("cert-manager", {
   installCRDs: true,
   helmOptions: {
     namespace: "default",
-    // createNamespace: true,
   },
 });
 
@@ -187,65 +188,6 @@ if (isMinikube) {
     },
     { dependsOn: certManager }
   );
-  // const clusterIssuer = new k8s.apiextensions.CustomResource(
-  //   "cluster-issuer",
-  //   {
-  //     apiVersion: "cert-manager.io/v1",
-  //     kind: "ClusterIssuer",
-  //     metadata: {
-  //       name: "cluster-issuer",
-  //       namespace: "cert-manager",
-  //     },
-  //     spec: {
-  //       acme: {
-  //         email: "steve.guo@mail.utoronto.ca",
-  //         server: "https://acme-staging-v02.api.letsencrypt.org/directory",
-  //         privateKeySecretRef: {
-  //           name: "issuer-account-key",
-  //         },
-  //         solvers: [
-  //           {
-  //             http01: {
-  //               ingress: {
-  //                 // serviceType: "ClusterIP",
-  //                 // ingressTemplate: {
-  //                 //   metadata: {
-  //                 //     annotations: {
-  //                 //       "kubernetes.io/ingress.class": "nginx",
-  //                 //     },
-  //                 //   },
-  //                 // },
-  //                 class: "nginx",
-  //               },
-  //             },
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   },
-  //   { dependsOn: certManager }
-  // );
-  // const certificate = new k8s.apiextensions.CustomResource(
-  //   "alkitab-certificate",
-  //   {
-  //     apiVersion: "cert-manager.io/v1",
-  //     kind: "Certificate",
-  //     metadata: {
-  //       name: "alkitab-certificate",
-  //       namespace: "cert-manager",
-  //     },
-  //     spec: {
-  //       dnsNames: ["www.cscc09-alkitab.ninja"],
-  //       secretName: "alkitab-tls-secret",
-  //       issuerRef: {
-  //         name: "cluster-issuer",
-  //         kind: "ClusterIssuer",
-  //         group: "cert-manager.io",
-  //       },
-  //     },
-  //   },
-  //   { dependsOn: clusterIssuer }
-  // );
 }
 
 // Next, expose the app using an Ingress.
@@ -257,14 +199,11 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
       "nginx.ingress.kubernetes.io/proxy-body-size": "0",
       "nginx.ingress.kubernetes.io/proxy-read-timeout": "600",
       "nginx.ingress.kubernetes.io/proxy-send-timeout": "600",
-      // "acme.cert-manager.io/http01-edit-in-place": "true",
-      // "cert-manager.io/issue-temporary-certificate": "true",
       ...(isMinikube && {
         "cert-manager.io/cluster-issuer": "self-signed-cluster-issuer",
         // This is only needed for minikube I think
         "nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
       }),
-      // "nginx.ingress.kubernetes.io/ssl-redirect": "false",
 
       ...(!isMinikube && {
         "cert-manager.io/cluster-issuer": "letsencrypt",
@@ -278,13 +217,12 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
         port: { number: 80 },
       },
     },
-    // ingressClassName: "nginx",
 
     ...(!isMinikube && {
       tls: [
         {
           hosts: ["www.cscc09-alkitab.ninja"],
-          secretName: "alkitab-tls-secret", // I don't think I need...
+          secretName: "alkitab-tls-secret",
         },
       ],
     }),
@@ -300,6 +238,16 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
                 service: {
                   name: "mongo-express",
                   port: { number: 8081 },
+                },
+              },
+            },
+            {
+              pathType: "Prefix",
+              path: "/socket.io",
+              backend: {
+                service: {
+                  name: "alkitab-backend-service",
+                  port: { number: 3000 },
                 },
               },
             },
@@ -322,7 +270,6 @@ const appIngress = new k8s.networking.v1.Ingress(`alkitab-ingress`, {
 
 const portainer = new k8s.helm.v3.Chart("portainer", {
   chart: "portainer",
-  // version: "12.1.30",
   fetchOpts: {
     repo: "https://portainer.github.io/k8s/",
   },
@@ -338,14 +285,12 @@ const portainer = new k8s.helm.v3.Chart("portainer", {
       }),
 
       enabled: true,
-      ingressClassName: "nginx", // THIS IS NEEDED!
+      ingressClassName: "nginx",
       annotations: {
         "nginx.ingress.kubernetes.io/rewrite-target": "/$2",
         ...(!isMinikube && {
           "cert-manager.io/cluster-issuer": "letsencrypt",
         }),
-
-        // "nginx.ingress.kubernetes.io/ssl-redirect": "false",
       },
       hosts: [
         {

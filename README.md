@@ -1,6 +1,6 @@
 # **Alkitab**
 ### [Project Demo](https://youtu.be/0GMP3xIboAI)
-<br/>
+### [https://www.cscc09-alkitab.ninja/](https://www.cscc09-alkitab.ninja/)
 
 ## **Description**
 Alkitab is a platform to view, share, discuss, and read e-books. Users can sign up, and browse a catalog of books.

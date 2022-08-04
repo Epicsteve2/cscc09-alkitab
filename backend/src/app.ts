@@ -6,6 +6,7 @@ import multer from 'multer';
 import socketio from 'socket.io';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
+import { SESSION_SECRET } from './config/server';
 
 import socket from './socket';
 
@@ -33,7 +34,7 @@ declare module 'express-session' {
 
 app.use(
 	session({
-		secret: '2FLBxeUZsx',
+		secret: SESSION_SECRET,
 		resave: false,
 		saveUninitialized: true
 	})
