@@ -3,17 +3,17 @@ import mongoose, { Schema } from 'mongoose';
 
 const BookSchema: Schema = new Schema(
 	{
-		user: { type: String, required: true},
+		user: { type: String, required: true },
 
-		title: { type: String, required: true},
+		title: { type: String, required: true },
 
 		pages: { type: Array<String>, required: true },
 		numPages: { type: Number },
 
 		coverImg: {
-			id : { type: String, required: true},
-			mimeType: { type: String, required: true},
-			path :  { type: String, required: true}
+			id: { type: String, required: true },
+			mimeType: { type: String, required: true },
+			path: { type: String, required: true }
 		}
 	},
 	{

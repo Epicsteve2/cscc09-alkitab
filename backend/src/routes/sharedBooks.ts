@@ -7,5 +7,4 @@ sharedBooksRouter.post('/share', sharedBooksController.addShareRelationship);
 
 sharedBooksRouter.get('/', sharedBooksController.getSharedBooks);
 
-
 export default sharedBooksRouter;

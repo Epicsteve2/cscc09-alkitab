@@ -5,9 +5,9 @@ import session from 'express-session';
 import multer from 'multer';
 import socketio from 'socket.io';
 import { Server } from 'socket.io';
-import { createServer } from "http";
+import { createServer } from 'http';
 
-import socket from "./socket";
+import socket from './socket';
 
 import logging from './middlewares/logging';
 
@@ -20,7 +20,6 @@ import sharedBooksRouter from './routes/sharedBooks';
 import { ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData } from './interfaces/socketio';
 
 import { checkLoggedIn } from './middlewares/auth';
-
 
 const NAMESPACE: string = 'App';
 const app: express.Application = express();
@@ -62,20 +61,20 @@ const upload = multer({ dest: 'uploads/' });
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
 	cors: {
-	  origin: "*",
-	  credentials: true,
-	},
-  });
+		origin: '*',
+		credentials: true
+	}
+});
 
 // API Routes
 
 app.use('/api/users', userRouter);
 
-app.use('/api/library', checkLoggedIn)
-app.use('/api/library/', libraryRouter)
+app.use('/api/library', checkLoggedIn);
+app.use('/api/library/', libraryRouter);
 
-app.use('/api/sharedbooks', checkLoggedIn)
-app.use('/api/sharedbooks/', sharedBooksRouter)
+app.use('/api/sharedbooks', checkLoggedIn);
+app.use('/api/sharedbooks/', sharedBooksRouter);
 
 // Error Handling
 app.use((req, res, next) => {

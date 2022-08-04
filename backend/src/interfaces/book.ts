@@ -6,8 +6,8 @@ export default interface IBook extends Document {
 	numPages: Number;
 	title: String;
 	coverImg: {
-		id: String,
-		mimeType: String,
-		path: String,
-	}
+		id: String;
+		mimeType: String;
+		path: String;
+	};
 }
