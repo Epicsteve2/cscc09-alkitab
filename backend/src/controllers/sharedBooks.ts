@@ -10,16 +10,22 @@ export const addShareRelationship: RequestHandler = async (req: Request, res: Re
     if (! await userExists(req.body.sharee)) 
         res.status(404).json({msg: "User dose not exist"})
 
+    
     else {
-        const newShare = new BookShare({
-            bookId: req.body.bookId,
-            sharer: req.session.user || req.body.sharer,
-            sharee: req.body.sharee
-        });
-    
-        newShare.save();
-    
-        res.status(200).json({ msg: 'relation added' });
+        const existingShare = await BookShare.find({$and : [{bookId : req.body.bookId}, {sharer: req.session.user}, {sharee:req.body.sharee}]})
+        if (existingShare){
+            res.status(400).json({msg: "Already added"})
+        } else {
+            const newShare = new BookShare({
+                bookId: req.body.bookId,
+                sharer: req.session.user || req.body.sharer,
+                sharee: req.body.sharee
+            });
+        
+            newShare.save();
+        
+            res.status(200).json({ msg: 'relation added' });
+        }
     }
 };
 
