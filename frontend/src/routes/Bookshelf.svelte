@@ -6,7 +6,12 @@
   import { currentUser } from "../stores";
   import { getBooks, API_URL } from "../api-service";
 
-  let getBooksPromise = getBooks();
+  let getBooksPromise: Promise<any>;
+  if ($currentUser)
+    getBooksPromise = getBooks();
+  else {
+    getBooksPromise = Promise.resolve("");
+  }
 </script>
 
 <Container>

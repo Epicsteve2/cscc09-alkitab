@@ -64,7 +64,7 @@ const frontendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-frontend`,
-              image: "epicsteve2/alkitab-frontend",
+              image: "epicsteve2/alkitab-frontend:1.0.2",
               imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 80 }],
             },
@@ -100,7 +100,7 @@ const backendDeployment = new k8s.apps.v1.Deployment(
           containers: [
             {
               name: `${appName}-backend`,
-              image: "epicsteve2/alkitab-backend",
+              image: "epicsteve2/alkitab-backend:1.0.0",
               imagePullPolicy: isMinikube ? "Never" : "Always",
               ports: [{ containerPort: 3000 }],
               env: [{ name: "MONGO_HOST", value: "mongodb" }],

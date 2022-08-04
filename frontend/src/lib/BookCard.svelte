@@ -87,13 +87,17 @@
                       $currentUser
                     );
 
-                    shareBookPromise.then(() => {
-                      notifications.addNotification(
-                        "Share book",
-                        "Book has been successfully shared!"
-                      );
-                      toggleModal();
-                    });
+                    shareBookPromise
+                      .then(() => {
+                        notifications.addNotification(
+                          "Share book",
+                          "Book has been successfully shared!"
+                        );
+                        toggleModal();
+                      })
+                      .catch(() => {
+                        toggleModal();
+                      });
                   }}>Share</Button
                 >
                 <Button color="secondary" on:click={toggleModal}>Cancel</Button>

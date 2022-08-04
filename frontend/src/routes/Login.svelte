@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { notifications } from "../stores";
+
   import { Container, Spinner } from "sveltestrap";
 
   import { register, login } from "../api-service";
@@ -46,6 +48,21 @@
         class="btn btn-warning "
         type="button"
         on:click|preventDefault={() => {
+          if (username.length < 3) {
+            notifications.addNotification(
+              "Register error",
+              "Username too short. Username must be more than 3 characters"
+            );
+            return;
+          }
+          if (password.length < 5) {
+            notifications.addNotification(
+              "Register error",
+              "Password too short. Password must be more than 5 characters"
+            );
+            return;
+          }
+
           registerPromise = register(username, password);
         }}>Register</button
       >

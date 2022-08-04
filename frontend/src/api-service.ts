@@ -305,7 +305,9 @@ export async function getSharedBooks(
   user?: string
 ): Promise<{ books: BookList[] }> {
   const queryParams = user ? `?user=${user}` : "";
-  const response = await fetch(`${API_URL}/api/sharedbooks${queryParams}`);
+  const response = await fetch(`${API_URL}/api/sharedbooks${queryParams}`, {
+    credentials: "include",
+  });
 
   if (response.ok) {
     const sharedBookList = await response.json();
@@ -320,7 +322,12 @@ export async function getSharedBooks(
 export async function getBookDetails(
   bookId: string
 ): Promise<{ book: Object }> {
-  const response = await fetch(`${API_URL}/api/library/book/${bookId}/details`);
+  const response = await fetch(
+    `${API_URL}/api/library/book/${bookId}/details`,
+    {
+      credentials: "include",
+    }
+  );
 
   if (response.ok) {
     const bookDetails = await response.json();
