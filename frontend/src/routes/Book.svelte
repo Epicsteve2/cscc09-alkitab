@@ -11,12 +11,10 @@
   } from "../api-service";
 
   import { onMount } from "svelte";
-  import io, { Socket } from "socket.io-client";
+  import io from "socket.io-client";
 
   import { parse } from "node-html-parser";
   import mergeRanges from "merge-ranges";
-
-  import { ALKITAB_BACKEND_PORT, ALKITAB_BACKEND_URL } from "../stores";
 
   let pageNumber = parseInt(pageNumberUrl);
   let getBookPromise = getBook(bookId, pageNumber);

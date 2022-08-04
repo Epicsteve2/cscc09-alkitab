@@ -9,9 +9,6 @@
   let nodeRef: SvelteComponentTyped;
 </script>
 
-<!-- TODO: This is bad for developing because
-  notifications comes back after hot reload...
--->
 <Toast bind:this={nodeRef}>
   <ToastHeader
     toggle={() => {

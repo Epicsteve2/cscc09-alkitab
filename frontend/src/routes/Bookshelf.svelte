@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { links } from "svelte-routing";
   import { Container, Spinner } from "sveltestrap";
   import BookCard from "../lib/BookCard.svelte";
 
   import { currentUser } from "../stores";
-  import { getBooks, API_URL } from "../api-service";
+  import { getBooks } from "../api-service";
 
   let getBooksPromise: Promise<any>;
   if ($currentUser) getBooksPromise = getBooks();
