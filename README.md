@@ -1,6 +1,7 @@
 # **Alkitab**
 ### [Project Demo](https://youtu.be/0GMP3xIboAI)
 ### [https://www.cscc09-alkitab.ninja/](https://www.cscc09-alkitab.ninja/)
+**EDIT**: dead link
 
 ## **Description**
 Alkitab is a platform to view, share, discuss, and read e-books. Users can sign up, and browse a catalog of books.
@@ -39,21 +40,23 @@ Alkitab is a platform to view, share, discuss, and read e-books. Users can sign 
 ## **Tech Stack**
 ### **Front End**
 * Svelte
-* SCSS
+* ~~SCSS~~
 * Bootstrap
 
 ### **Back End**
 * TypeScript
 * Express
-* Amazon S3
+* ~~Amazon S3~~
 * MongoDB
 
 ## **Deployment**
-- Docker On AWS
+- ~~Docker On AWS~~
 - Kubernetes
+- Linode
 
 ## **Team Members**
 
 * [Stephen Guo](https://github.com/Epicsteve2)
 * [Andy Yuen](https://github.com/AndyTRY)
-* [Mohammad Qadir](https://github.com/DomiVesalius)
+* ~~[Mohammad Qadir](https://github.com/DomiVesalius)~~
+
